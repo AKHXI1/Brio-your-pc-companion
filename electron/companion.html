@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' file: data: blob:;" />
+  <link rel="stylesheet" href="./theme.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family: "Nirmala UI", "Segoe UI", "Segoe UI Emoji", "Segoe UI Symbol", system-ui, sans-serif;
+    }
+
+    #stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding-top: 26px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    /* Speech bubble & floating buttons directly above the character */
+    #reminder-area {
+      position: relative;
+      width: 100%;
+      height: 194px;
+      flex: 0 0 194px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 7px;
+      padding: 8px 12px 6px;
+      overflow: visible;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(6px);
+      transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+      z-index: 20;
+    }
+
+    #reminder-area.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: none;
+      transform: translateY(0);
+    }
+
+    #reminder-area.visible .bubble,
+    #reminder-area.visible .float-btns,
+    #reminder-area.visible .reply-menu {
+      pointer-events: auto;
+    }
+
+    .bubble-box {
+      position: relative;
+      max-width: 100%;
+    }
+
+    .bubble {
+      position: relative;
+      min-width: 190px;
+      max-width: 348px;
+      background: var(--bubble-bg);
+      border: 1.5px solid var(--accent);
+      border-radius: 16px;
+      padding: 10px 15px;
+      color: var(--text-primary);
+      text-align: center;
+      box-shadow: var(--shadow-card);
+      transition: border-color 0.22s ease, background-color 0.22s ease, color 0.22s ease;
+    }
+
+    #reminder-area.urgent .bubble,
+    #reminder-area.doubt .bubble {
+      border-color: var(--gold);
+    }
+
+    #reminder-area.angry .bubble {
+      border-color: #EF4444;
+      background: rgba(28, 13, 18, 0.96);
+      animation: bubbleShake 0.42s ease-in-out;
+    }
+
+    @keyframes bubbleShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-4px); }
+      40% { transform: translateX(4px); }
+      60% { transform: translateX(-3px); }
+      80% { transform: translateX(3px); }
+    }
+
+    .tail {
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid var(--accent);
+    }
+
+    .tail::after {
+      content: "";
+      position: absolute;
+      left: -5px;
+      top: -7px;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid var(--tail-inner);
+    }
+
+    #reminder-area.urgent .tail,
+    #reminder-area.doubt .tail {
+      border-top-color: var(--gold);
+    }
+
+    #reminder-area.angry .tail {
+      border-top-color: #EF4444;
+    }
+
+    #reminder-area.angry .tail::after {
+      border-top-color: rgba(28, 13, 18, 0.96);
+    }
+
+    .quote {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.54;
+      letter-spacing: 0.1px;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      overflow: visible;
+    }
+
+    .quote.compact {
+      font-size: 11.7px;
+      line-height: 1.46;
+    }
+
+    #reminder-area.angry .quote {
+      color: #FCA5A5;
+      font-weight: 700;
+    }
+
+    .btn-x {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--bubble-bg);
+      border: 1.5px solid var(--border-strong);
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      box-shadow: 0 3px 8px rgba(2, 6, 23, 0.35);
+      z-index: 6;
+    }
+
+    .btn-x:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .float-btns {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      max-width: 356px;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .pill-btn {
+      border-radius: 999px;
+      padding: 6px 15px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(2, 6, 23, 0.35);
+      transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .pill-btn:active {
+      transform: scale(0.96);
+    }
+
+    .pill-btn.drink {
+      background: var(--accent-solid);
+      color: var(--accent-contrast);
+      border: 1.5px solid var(--accent);
+    }
+
+    .pill-btn.drink:hover {
+      background: var(--accent-hover);
+    }
+
+    #reminder-area.angry .pill-btn.drink {
+      background: #EF4444;
+      color: #FFFFFF;
+      border-color: #FCA5A5;
+    }
+
+    #reminder-area.angry .pill-btn.drink:hover {
+      background: #F87171;
+    }
+
+    .pill-btn.later {
+      background: var(--btn-later-bg);
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border-strong);
+      font-weight: 600;
+    }
+
+    .pill-btn.later:hover {
+      background: var(--btn-later-hover);
+      border-color: var(--accent);
+    }
+
+    #reminder-area.reaction .bubble {
+      border-color: var(--success-solid);
+    }
+
+    #reminder-area.reaction .tail {
+      border-top-color: var(--success-solid);
+    }
+
+    #reminder-area.milestone .bubble {
+      border-color: var(--gold);
+    }
+
+    #reminder-area.milestone .tail {
+      border-top-color: var(--gold);
+    }
+
+    #reminder-area.reaction .float-btns,
+    #reminder-area.reaction .btn-x,
+    #reminder-area.milestone .float-btns,
+    #reminder-area.milestone .btn-x,
+    #reminder-area.focus-peek .float-btns,
+    #reminder-area.focus-peek .btn-x {
+      display: none;
+    }
+
+    #reminder-area.focus-peek .bubble {
+      min-width: 112px;
+      padding: 7px 13px;
+      font-size: 12px;
+      opacity: 0.94;
+      border-color: var(--border-strong);
+    }
+
+    .reply-wrap {
+      position: relative;
+      display: inline-block;
+    }
+
+    .reply-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      bottom: auto;
+      right: 0;
+      min-width: 168px;
+      max-height: 185px;
+      overflow-y: auto;
+      background: var(--bubble-bg);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 4px;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      box-shadow: var(--shadow-card);
+      z-index: 30;
+    }
+
+    .reply-menu.open {
+      display: flex;
+    }
+
+    .reply-opt {
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6px 9px;
+      text-align: left;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+
+    .reply-opt:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .pill-btn.counting {
+      background: var(--success-solid);
+      border-color: var(--success);
+      color: #FFFFFF;
+    }
+
+    .pill-btn.eye {
+      background: var(--btn-later-bg);
+      color: var(--accent);
+      border: 1.5px solid var(--accent-solid);
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+
+    .pill-btn.eye:hover {
+      background: var(--accent-soft);
+    }
+
+    #sticky-editor {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    #sticky-editor.visible {
+      display: flex;
+    }
+    #in-sticky-inline {
+      flex: 1;
+      min-width: 120px;
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-family: inherit;
+      outline: none;
+    }
+    #btn-sticky-save {
+      background: var(--accent-solid);
+      color: var(--accent-contrast);
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    #canvas-wrap {
+      position: relative;
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 120px;
+      cursor: grab;
+    }
+
+    #canvas-wrap.dragging {
+      cursor: grabbing;
+    }
+
+    #gl-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #breath-guide {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      width: 158px;
+      height: 158px;
+      transform: translate(-50%, -50%) scale(0.72);
+      border-radius: 50%;
+      border: 2.5px solid rgba(56, 189, 248, 0.85);
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.4), inset 0 0 18px rgba(56, 189, 248, 0.22);
+      pointer-events: none;
+      opacity: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 10px;
+      transition: transform 3.8s ease-in-out, opacity 0.35s ease, border-color 0.4s ease;
+      z-index: 1;
+    }
+
+    #breath-guide.active { opacity: 1; }
+    #breath-guide.inhale {
+      transform: translate(-50%, -50%) scale(1.16);
+      border-color: #38BDF8;
+    }
+    #breath-guide.hold1,
+    #breath-guide.hold2 {
+      transform: translate(-50%, -50%) scale(1.16);
+      border-color: #34D399;
+    }
+    #breath-guide.exhale {
+      transform: translate(-50%, -50%) scale(0.72);
+      border-color: #A78BFA;
+    }
+    #breath-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #E0F2FE;
+      background: rgba(15, 23, 42, 0.86);
+      padding: 2px 9px;
+      border-radius: 999px;
+      letter-spacing: 0.3px;
+    }
+
+    #pill {
+      display: none !important;
+    }
+
+    #error-badge {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(220, 38, 38, 0.92);
+      color: #fff;
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: none;
+      white-space: nowrap;
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/"
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div id="stage">
+    <div id="reminder-area">
+      <div class="bubble-box">
+        <div class="bubble">
+          <div class="quote" id="quote">Time for a quick sip?</div>
+        </div>
+        <div class="tail"></div>
+        <button class="btn-x" id="btn-close" title="Close">×</button>
+      </div>
+      <div class="float-btns">
+        <button class="pill-btn drink" id="btn-drink">Drank</button>
+        <button class="pill-btn eye" id="btn-eye" title="Start 20-20-20 Eye Break 20s Countdown" style="display:none;">👀 20s</button>
+        <div class="reply-wrap" id="reply-wrap">
+          <button class="pill-btn later" id="btn-snooze">Later ▾</button>
+          <div class="reply-menu" id="reply-menu"></div>
+        </div>
+        <button class="pill-btn later" id="btn-mood-fresh" style="display:none;border-color:#0EA5E9;color:#7DD3FC;">🔥 Fresh</button>
+        <button class="pill-btn later" id="btn-mood-sleepy" style="display:none;border-color:#F59E0B;color:#FDE68A;">😴 Sleepy</button>
+        <button class="pill-btn later" id="btn-mood-stressed" style="display:none;border-color:#34D399;color:#6EE7B7;">😰 Stressed</button>
+      </div>
+    </div>
+    <div id="canvas-wrap">
+      <div id="breath-guide"><span id="breath-label">Inhale...</span></div>
+      <canvas id="gl-canvas" width="220" height="264"></canvas>
+      <div id="pill">20:00 • 0/8</div>
+      <div id="error-badge"></div>
+    </div>
+  </div>
+  <script type="module" src="./companion.js"></script>
+</body>
+
+</html>

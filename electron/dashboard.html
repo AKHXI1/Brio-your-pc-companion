@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title></title>
+  <link rel="stylesheet" href="./theme.css" />
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background: transparent;
+      font-family: "Segoe UI", "Segoe UI Emoji", "Segoe UI Symbol", system-ui, sans-serif;
+      overflow: hidden;
+    }
+    .card {
+      width: 100%; height: 100%;
+      background: var(--bg-main);
+      background-image: var(--bg-ambient);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 15px;
+      padding: 14px 16px;
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-card);
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+    .head { display: flex; align-items: center; justify-content: space-between; }
+    .title { font-size: 14.5px; font-weight: 700; }
+    .close-btn {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 18px; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 6px;
+    }
+    .close-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+    .intake { font-size: 12.5px; font-weight: 700; margin-top: 8px; }
+    .bar-bg {
+      width: 100%; height: 10px;
+      background: var(--bg-elevated); border-radius: 999px;
+      overflow: hidden; margin: 6px 0;
+    }
+    .bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--accent-solid), var(--accent)); border-radius: 999px;
+      transition: width 0.25s ease, background 0.25s ease;
+    }
+    .bar-fill.goal { background: var(--success-solid); }
+    .timer-line { font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px; }
+    .row { display: flex; gap: 6px; margin-top: 6px; }
+    button {
+      border: none; border-radius: 8px; cursor: pointer;
+      font-family: inherit;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .btn-primary {
+      flex: 1; background: var(--accent-solid); color: var(--accent-contrast);
+      font-size: 12.5px; font-weight: 700; padding: 8px 10px;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-sec {
+      background: var(--bg-elevated); color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      font-size: 12px; padding: 8px 11px;
+    }
+    .btn-sec:hover { border-color: var(--border-strong); }
+    .btn-sm {
+      flex: 1; background: var(--bg-elevated); color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      font-size: 11.5px; padding: 7px 6px;
+    }
+    .btn-sm:hover { border-color: var(--border-strong); color: var(--text-primary); }
+    .btn-size-active {
+      background: var(--accent-soft) !important;
+      color: var(--accent) !important;
+      border: 1px solid var(--accent) !important;
+      font-weight: 700;
+    }
+    .btn-accent { color: var(--accent); font-weight: 700; }
+    .btn-dnd-on { background: var(--gold-soft); color: var(--gold); border: 1px solid var(--gold-border); }
+    .foot {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 6px; font-size: 11px; color: var(--text-muted);
+    }
+    .link-btn {
+      background: none; color: var(--text-muted); font-size: 11px; padding: 2px 4px;
+    }
+    .link-btn:hover { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div>
+      <div class="head">
+        <div class="title">✨ Brio</div>
+        <button class="close-btn" id="btn-close">×</button>
+      </div>
+      <div class="intake" id="intake">Today: 0 / 8 glasses (0 / 2,000 ml)</div>
+      <div class="bar-bg"><div class="bar-fill" id="bar-fill"></div></div>
+      <div class="timer-line" id="timer-line">Next reminder in 20:00</div>
+      <div class="timer-line" id="work-line" style="margin-top:-4px;margin-bottom:6px;color:var(--accent);font-weight:600;">💼 Work: 0m • ☕ Break: 0m • Off</div>
+      <div class="row" style="margin-top:2px;margin-bottom:4px;">
+        <button class="btn-sm" id="btn-size-150" title="150ml Chaya Glass">☕ 150ml</button>
+        <button class="btn-sm" id="btn-size-250" title="250ml Standard Glass">💧 250ml</button>
+        <button class="btn-sm" id="btn-size-500" title="500ml Water Bottle">🍶 500ml</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="row">
+        <button class="btn-primary" id="btn-drink">+1 Glass</button>
+        <button class="btn-sec" id="btn-pose" title="Trigger Mohanlal Signature Pose">😎</button>
+        <button class="btn-sec" id="btn-undo">-1</button>
+      </div>
+      <div class="row">
+        <button class="btn-sm" id="btn-work-start">▶ Work</button>
+        <button class="btn-sm" id="btn-work-break">☕ Break</button>
+        <button class="btn-sm" id="btn-work-end">⏹ End</button>
+      </div>
+      <div class="row">
+        <button class="btn-sm" id="btn-stretch">🏃 Stretch</button>
+        <button class="btn-sm" id="btn-pomo">🍅 Pomodoro</button>
+        <button class="btn-sm" id="btn-dnd">🌙 DND 1h</button>
+      </div>
+      <div class="row">
+        <button class="btn-sm" id="btn-pause">Pause</button>
+        <button class="btn-sm" id="btn-test">Test</button>
+        <button class="btn-sm btn-accent" id="btn-settings">Settings</button>
+      </div>
+      <div class="foot">
+        <span id="glb-name">Mohanlal 3D</span>
+        <button class="link-btn" id="btn-quit">Quit App</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentDndActive = false;
+
+    function render(p) {
+      if (!p) return;
+      const cfg = p.config || {};
+      const st = p.state || {};
+      const tmr = p.timer || {};
+      const glbInfo = p.glb || {};
+      if (cfg.ui_theme) {
+        document.documentElement.dataset.theme = cfg.ui_theme;
+      }
+      currentDndActive = Boolean(tmr.dndActive);
+      const g = st.glasses_today || 0;
+      const ml = st.mlToday !== undefined ? st.mlToday : g * (cfg.glass_ml || 250);
+      const goalMl = Math.max(
+        250,
+        st.goalMl ||
+          cfg.daily_goal_ml ||
+          Math.max(1, cfg.daily_goal_glasses || 8) * (cfg.glass_ml || 250)
+      );
+      const liters = (ml / 1000).toFixed(2);
+      const goalLiters = (goalMl / 1000).toFixed(2);
+      const pct = Math.min(100, Math.round((ml / goalMl) * 100));
+      document.getElementById("intake").textContent =
+        `Today: ${liters} / ${goalLiters} L (${pct}% • ${g} drinks)`;
+      const bar = document.getElementById("bar-fill");
+      bar.style.width = `${pct}%`;
+      bar.classList.toggle("goal", ml >= goalMl);
+
+      const curMl = Number(cfg.glass_ml) || 250;
+      document.getElementById("btn-size-150").classList.toggle("btn-size-active", curMl === 150);
+      document.getElementById("btn-size-250").classList.toggle("btn-size-active", curMl === 250);
+      document.getElementById("btn-size-500").classList.toggle("btn-size-active", curMl === 500);
+
+      const sys = p.system || {};
+      const sysTxt = sys.cpuPercent !== undefined ? ` • CPU ${sys.cpuPercent}%` : "";
+      const pomo = p.pomodoro || {};
+      const pomoTxt = pomo.enabled
+        ? ` • 🍅 ${String(pomo.phase || "work").toUpperCase()} ${Math.ceil((pomo.remainingSeconds || 0) / 60)}m`
+        : "";
+      const statusMap = {
+        running: `Next in ${tmr.formatted || "20:00"}${pomoTxt}${sysTxt}`,
+        snoozed: `Later — in ${tmr.formatted || "05:00"}${sysTxt}`,
+        paused: `Paused (${tmr.formatted || "00:00"} left)`,
+        reminding: "Reminder active!"
+      };
+      document.getElementById("timer-line").textContent = currentDndActive
+        ? `🌙 Do Not Disturb (${tmr.dndMinutesLeft || 0}m left)`
+        : tmr.fullscreenDeferred
+          ? "🎮 Fullscreen detected — waiting to exit"
+          : (statusMap[tmr.status] || "");
+      const ws = p.workSchedule || {};
+      const sessMode = ws.sessionMode || "off";
+      const modeLabel =
+        sessMode === "working"
+          ? ws.activityPaused
+            ? "Paused (Idle)"
+            : "Working"
+          : sessMode === "break"
+            ? "On Break"
+            : ws.shiftEnabled && !ws.inShiftWindow
+              ? "Off Shift"
+              : "Off";
+      document.getElementById("work-line").textContent =
+        `💼 ${st.workTimeFormatted || "0m"} • ☕ ${st.breakTimeFormatted || "0m"} • ${modeLabel}`;
+      document.getElementById("btn-work-start").classList.toggle("btn-size-active", sessMode === "working");
+      document.getElementById("btn-work-break").classList.toggle("btn-size-active", sessMode === "break");
+      document.getElementById("btn-work-end").classList.toggle("btn-size-active", sessMode === "off");
+      document.getElementById("btn-drink").textContent = `+1 (${curMl}ml)`;
+      document.getElementById("btn-pause").textContent =
+        tmr.status === "paused" ? "Resume" : "Pause";
+      document.getElementById("btn-pomo").textContent =
+        pomo.enabled ? `🍅 Stop` : `🍅 Focus`;
+      const dndBtn = document.getElementById("btn-dnd");
+      dndBtn.textContent = currentDndActive ? "☀ End DND" : "🌙 DND 1h";
+      dndBtn.classList.toggle("btn-dnd-on", currentDndActive);
+
+      const fileName = String(glbInfo.path || "").split(/[/\\]/).pop();
+      document.getElementById("glb-name").textContent = glbInfo.isCustom
+        ? `GLB: ${fileName}`
+        : fileName.toLowerCase().includes("mohanlal")
+          ? "Mohanlal 3D"
+          : "Droppy 3D";
+    }
+
+    window.waterBuddy.onStateUpdate(render);
+    window.waterBuddy.getState().then(render);
+
+    document.getElementById("btn-close").onclick = () => window.waterBuddy.closeDashboard();
+    document.getElementById("btn-drink").onclick = () => window.waterBuddy.drink();
+    document.getElementById("btn-pose").onclick = () => window.waterBuddy.triggerPose();
+    document.getElementById("btn-size-150").onclick = () => window.waterBuddy.setGlassMl(150);
+    document.getElementById("btn-size-250").onclick = () => window.waterBuddy.setGlassMl(250);
+    document.getElementById("btn-size-500").onclick = () => window.waterBuddy.setGlassMl(500);
+    document.getElementById("btn-undo").onclick = () => window.waterBuddy.undoDrink();
+    document.getElementById("btn-stretch").onclick = () => window.waterBuddy.testReminder("stretch");
+    document.getElementById("btn-work-start").onclick = () => window.waterBuddy.setWorkSession("working");
+    document.getElementById("btn-work-break").onclick = () => window.waterBuddy.setWorkSession("break");
+    document.getElementById("btn-work-end").onclick = () => window.waterBuddy.setWorkSession("off");
+    document.getElementById("btn-pomo").onclick = () => window.waterBuddy.togglePomodoro();
+    document.getElementById("btn-pause").onclick = () => window.waterBuddy.togglePause();
+    document.getElementById("btn-dnd").onclick = () => window.waterBuddy.toggleDnd(currentDndActive ? 0 : 60);
+    document.getElementById("btn-test").onclick = () => window.waterBuddy.testReminder("water");
+    document.getElementById("btn-settings").onclick = () => window.waterBuddy.openSettings();
+    document.getElementById("btn-quit").onclick = () => window.waterBuddy.quit();
+  </script>
+</body>
+</html>

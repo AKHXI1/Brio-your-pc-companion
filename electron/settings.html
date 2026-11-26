@@ -1,0 +1,2459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Brio — Settings</title>
+  <link rel="stylesheet" href="./theme.css" />
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-base);
+      background-image: var(--bg-ambient);
+      color: var(--text-primary);
+      font-family: "Segoe UI Variable Text", "Segoe UI", "Segoe UI Emoji", "Segoe UI Symbol", system-ui, sans-serif;
+      overflow: hidden;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .win-root {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+    }
+    .win-titlebar {
+      height: 34px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 144px 0 16px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.25px;
+      color: var(--text-muted);
+      background: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border-subtle);
+      -webkit-app-region: drag;
+    }
+
+    .app-shell {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+    }
+
+    /* Left Sidebar */
+    .sidebar {
+      width: 228px;
+      background: var(--bg-sidebar);
+      backdrop-filter: blur(16px);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 14px 12px;
+      flex-shrink: 0;
+    }
+    .brand {
+      padding: 4px 8px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 10px;
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-title {
+      font-size: 16.5px;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .brand-ver {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+    .nav-btn:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+    .nav-btn.active {
+      background: var(--bg-card);
+      border-color: var(--border-subtle);
+      color: var(--text-primary);
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+    }
+    .nav-btn.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 7px;
+      bottom: 7px;
+      width: 3.5px;
+      border-radius: 0 4px 4px 0;
+      background: linear-gradient(180deg, var(--accent), var(--gold));
+    }
+    .nav-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .nav-btn.active .nav-icon,
+    .nav-btn:hover .nav-icon {
+      color: var(--accent);
+    }
+
+    .status-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 11px 12px;
+      box-shadow: var(--shadow-card);
+    }
+    .status-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .status-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .mini-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-input);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 7px 0 9px;
+    }
+    .mini-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-solid), var(--gold));
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+    .quick-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+    .q-btn {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+      padding: 5px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .q-btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+    .q-btn.primary {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--border-glow);
+      font-weight: 700;
+    }
+
+    /* Main Content Area */
+    .main-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: transparent;
+      min-width: 0;
+    }
+    .pane-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 24px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(0, 0, 0, 0.06);
+      flex-shrink: 0;
+    }
+    .pane-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .pane-desc {
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .save-pill {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--success);
+      background: var(--success-soft);
+      border: 1px solid var(--success);
+      padding: 4px 10px;
+      border-radius: 999px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .save-pill.show { opacity: 1; }
+
+    .pane-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 24px 24px;
+    }
+    .pane-body::-webkit-scrollbar { width: 7px; }
+    .pane-body::-webkit-scrollbar-thumb {
+      background: var(--scroll-thumb);
+      border-radius: 999px;
+    }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .section-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.65px;
+      color: var(--accent);
+      margin: 14px 0 7px 2px;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    .card-group {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-card);
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-meta { min-width: 0; flex: 1; }
+    .setting-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .setting-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .setting-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-shrink: 0;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    input[type="password"],
+    input[type="time"],
+    select {
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-family: inherit;
+      font-size: 12.5px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    input[type="number"] { width: 84px; text-align: right; }
+    select { min-width: 145px; }
+
+    .seg-group {
+      display: inline-flex;
+      background: var(--bg-input);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .seg-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      border-radius: 6px;
+      padding: 5px 9px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .seg-btn.active {
+      background: var(--accent-solid);
+      color: var(--accent-contrast);
+      font-weight: 700;
+    }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px 14px;
+    }
+    .theme-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border-subtle);
+      color: var(--text-primary);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.12s ease, background-color 0.15s ease;
+    }
+    .theme-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+    .theme-card.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+    }
+    .theme-name { font-size: 12.5px; font-weight: 700; color: var(--text-primary); }
+    .theme-desc { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
+    .theme-dots { display: flex; gap: 4px; flex-shrink: 0; }
+    .theme-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 21px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      left: 2px;
+      bottom: 2px;
+      background: #F8FAFC;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+      transition: transform 0.2s ease;
+    }
+    .switch input:checked + .slider {
+      background: var(--accent-solid);
+      border-color: var(--accent);
+    }
+    .switch input:checked + .slider::before { transform: translateX(19px); }
+
+    .range-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .range-wrap input[type="range"] {
+      width: 120px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .range-val {
+      min-width: 48px;
+      text-align: right;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    button { font-family: inherit; }
+    .btn-primary {
+      background: var(--accent-solid);
+      color: var(--accent-contrast);
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-sec {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-sec:hover { border-color: var(--accent); }
+    .btn-sm {
+      background: var(--bg-input);
+      color: var(--accent);
+      border: 1px solid var(--border-strong);
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-sm:hover { background: var(--bg-elevated); }
+    .btn-danger {
+      color: var(--danger) !important;
+      border-color: var(--danger-border) !important;
+    }
+
+    .roster-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 12px;
+    }
+    .roster-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 9px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+    }
+    .roster-item.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .roster-info { min-width: 0; flex: 1; }
+    .roster-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .roster-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .roster-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      margin-left: 6px;
+      background: var(--gold-soft);
+      color: var(--gold);
+      border: 1px solid var(--gold-border);
+    }
+
+    details.adv-drawer {
+      background: var(--bg-drawer);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    details.adv-drawer summary {
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    details.adv-drawer summary::-webkit-details-marker { display: none; }
+    details.adv-drawer summary::after { content: "▾"; font-size: 12px; color: var(--text-muted); }
+    details.adv-drawer[open] summary {
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+    }
+
+    #history-canvas {
+      width: 100%;
+      height: 185px;
+      background: var(--bg-input);
+      border-radius: 9px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="win-root">
+    <div class="win-titlebar">✨ Brio — Settings &amp; Preferences</div>
+    <div class="app-shell">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <div class="brand-row">
+            <div class="brand-title" style="display:flex;align-items:center;gap:7px;">
+              <img id="brand-logo" src="" alt="" style="width:20px;height:20px;border-radius:5px;display:none;" />
+              <span>Brio</span>
+            </div>
+            <span class="brand-ver">v1.0</span>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-btn active" data-tab="general" data-title="Water &amp; Startup" data-desc="Set how often you want water reminders, your glass size, and startup greeting.">
+            <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
+            <span>Water &amp; Startup</span>
+          </button>
+          <button class="nav-btn" data-tab="companion" data-title="Character &amp; Looks" data-desc="Choose your 3D character, Superstar sunglasses, size, and walking style.">
+            <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span>
+            <span>Character &amp; Looks</span>
+          </button>
+          <button class="nav-btn" data-tab="wellness" data-title="Break Timers" data-desc="Manage eye rest, stretch reminders, and Pomodoro work/break timers.">
+            <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></span>
+            <span>Break Timers</span>
+          </button>
+          <button class="nav-btn" data-tab="activity" data-title="History &amp; Updates" data-desc="See your last 7 days of water intake and check for app updates.">
+            <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+            <span>History &amp; Updates</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Bottom Live Hydration Mini-Card -->
+      <div class="status-card">
+        <div class="status-title" id="live-status">Today: 0 / 8 glasses (0 ml)</div>
+        <div class="status-sub" id="live-timer">Next water reminder in 20:00</div>
+        <div class="status-sub" id="live-work" style="color:var(--accent);font-weight:600;margin-top:3px;">💼 0m work • ☕ 0m break</div>
+        <div class="mini-bar-bg"><div class="mini-bar-fill" id="side-bar-fill"></div></div>
+        <div class="quick-grid" style="margin-bottom:5px;grid-template-columns:1fr 1fr 1fr;">
+          <button class="q-btn" id="btn-side-work">▶ Work</button>
+          <button class="q-btn" id="btn-side-break">☕ Break</button>
+          <button class="q-btn" id="btn-side-off">⏹ Off</button>
+        </div>
+        <div class="quick-grid">
+          <button class="q-btn primary" id="btn-quick-drink">+1 Drink</button>
+          <button class="q-btn" id="btn-quick-test">Test Water</button>
+          <button class="q-btn" id="btn-quick-pause">Pause</button>
+          <button class="q-btn" id="btn-quick-dnd">🌙 Mute 1h</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Content Area -->
+    <main class="main-pane">
+      <header class="pane-header">
+        <div>
+          <h1 class="pane-title" id="pane-title">Water &amp; Startup</h1>
+          <p class="pane-desc" id="pane-desc">Set how often you want water reminders, your glass size, and startup greeting.</p>
+        </div>
+        <div class="header-actions">
+          <span class="save-pill" id="save-pill">✓ Saved</span>
+          <button class="btn-sec" id="btn-cancel">Close</button>
+          <button class="btn-primary" id="btn-save" style="display:none;">Save</button>
+        </div>
+      </header>
+
+      <div class="pane-body">
+        <!-- TAB 1: WATER & STARTUP -->
+        <section class="panel active" id="tab-general">
+          <div class="section-label">Water Reminders</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Remind Me Every (Minutes)</div>
+                <div class="setting-sub">Always asks you on time to drink water</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="number" id="in-interval" min="1" max="240" />
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">'Not now' Snooze Time (Minutes)</div>
+                <div class="setting-sub">Wait time before asking again when you click 'Not now'</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="number" id="in-snooze" min="1" max="60" />
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Glass Size</div>
+                <div class="setting-sub">Pick a standard size or type your own in ml</div>
+              </div>
+              <div class="setting-ctrl">
+                <div class="seg-group">
+                  <button type="button" class="seg-btn" data-ml="150">☕ 150ml</button>
+                  <button type="button" class="seg-btn" data-ml="250">💧 250ml</button>
+                  <button type="button" class="seg-btn" data-ml="500">🍶 500ml</button>
+                </div>
+                <input type="number" id="in-glass" min="50" max="2000" step="25" style="width:72px;" />
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Auto-Calculate Daily Goal</div>
+                <div class="setting-sub" id="calc-goal-preview">Calculated from age, height &amp; weight (standard ml/kg ratio)</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-auto-goal" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Your Body Profile</div>
+                <div class="setting-sub">Age (yrs), Height (cm), and Weight (kg) used to set your Liter goal</div>
+              </div>
+              <div class="setting-ctrl" style="gap:6px;">
+                <span style="font-size:11px;color:var(--text-muted);">Age</span>
+                <input type="number" id="in-age" min="5" max="110" style="width:54px;" />
+                <span style="font-size:11px;color:var(--text-muted);">cm</span>
+                <input type="number" id="in-height" min="90" max="240" style="width:60px;" />
+                <span style="font-size:11px;color:var(--text-muted);">kg</span>
+                <input type="number" id="in-weight" min="20" max="250" style="width:58px;" />
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Daily Goal (Glasses)</div>
+                <div class="setting-sub" id="goal-glasses-sub">Synced automatically from your Liter goal &amp; glass size (uncheck Auto to edit manually)</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="number" id="in-goal" min="1" max="30" />
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">Greeting &amp; Startup</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Your Name</div>
+                <div class="setting-sub">Used in "Hi &lt;Name&gt;, how are you?" (leave blank for Windows username)</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="text" id="in-user-name" placeholder="Auto (Windows Name)" style="width:165px;" />
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">How Should Brio Call You?</div>
+                <div class="setting-sub">Switches Malayalam lines between "മോനേ" (Male) and "മോളേ" (Female)</div>
+              </div>
+              <div class="setting-ctrl">
+                <select id="in-user-gender">
+                  <option value="male">Male — "മോനേ" (Mone)</option>
+                  <option value="female">Female — "മോളേ" (Mole)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Birthday (MM-DD)</div>
+                <div class="setting-sub">Optional — Brio celebrates your birthday + Kerala &amp; global holidays</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="text" id="in-birthday" placeholder="e.g. 05-21" maxlength="5" style="width:92px;text-align:center;" />
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Speech Bubble Language</div>
+                <div class="setting-sub">Language used for Mohanlal's dialogues</div>
+              </div>
+              <div class="setting-ctrl">
+                <select id="in-language">
+                  <option value="malayalam">Malayalam</option>
+                  <option value="english">English</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Say Hello on Startup</div>
+                <div class="setting-sub">Mohanlal walks in and asks how you are when the app starts</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-welcome-start" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Start with Windows</div>
+                <div class="setting-sub">Open Brio automatically when you turn on your PC</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-boot" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Pause During Fullscreen</div>
+                <div class="setting-sub">Don't pop up while watching fullscreen videos or playing games</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-dnd-fs" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: CHARACTER & LOOKS -->
+        <section class="panel" id="tab-companion">
+          <div class="section-label">Appearance &amp; Theme</div>
+          <div class="card-group">
+            <div class="theme-grid" id="theme-grid">
+              <button type="button" class="theme-card" data-theme-pick="midnight_glass">
+                <div>
+                  <div class="theme-name">Midnight Glass &amp; Gold</div>
+                  <div class="theme-desc">Obsidian frosted glass + warm amber</div>
+                </div>
+                <div class="theme-dots">
+                  <span class="theme-dot" style="background:#0B1120;"></span>
+                  <span class="theme-dot" style="background:#38BDF8;"></span>
+                  <span class="theme-dot" style="background:#FBBF24;"></span>
+                </div>
+              </button>
+              <button type="button" class="theme-card" data-theme-pick="kochi_noir">
+                <div>
+                  <div class="theme-name">Kochi Noir</div>
+                  <div class="theme-desc">Warm velvet charcoal + cinema gold</div>
+                </div>
+                <div class="theme-dots">
+                  <span class="theme-dot" style="background:#14100D;"></span>
+                  <span class="theme-dot" style="background:#F59E0B;"></span>
+                  <span class="theme-dot" style="background:#10B981;"></span>
+                </div>
+              </button>
+              <button type="button" class="theme-card" data-theme-pick="nordic_mist">
+                <div>
+                  <div class="theme-name">Nordic Mist (Light)</div>
+                  <div class="theme-desc">Soft daylight pearl + crisp teal</div>
+                </div>
+                <div class="theme-dots">
+                  <span class="theme-dot" style="background:#EEF3F9;border-color:#CBD5E1;"></span>
+                  <span class="theme-dot" style="background:#0284C7;"></span>
+                  <span class="theme-dot" style="background:#B45309;"></span>
+                </div>
+              </button>
+              <button type="button" class="theme-card" data-theme-pick="cyber_mint">
+                <div>
+                  <div class="theme-name">Cyber Mint Aurora</div>
+                  <div class="theme-desc">Twilight indigo + aurora mint glow</div>
+                </div>
+                <div class="theme-dots">
+                  <span class="theme-dot" style="background:#080B1A;"></span>
+                  <span class="theme-dot" style="background:#2DD4BF;"></span>
+                  <span class="theme-dot" style="background:#A78BFA;"></span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="section-label">Character Movement &amp; Size</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Always Wear Cool Sunglasses</div>
+                <div class="setting-sub">Unlocks automatically on hitting daily goal, or keep them on always</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-always-shades" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Only Show During Reminders</div>
+                <div class="setting-sub">Walk in when it's time to drink, and walk off when done</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-popup-only" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Click-Through Ghost Mode</div>
+                <div class="setting-sub">Clicks pass through Mohanlal to apps underneath (buttons work; hold Alt to drag)</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-ghost-mode" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Walk Across Screen</div>
+                <div class="setting-sub">Animate walking entrance and exit</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-walk" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Character Size</div>
+                <div class="setting-sub">Make Mohanlal smaller or larger on screen</div>
+              </div>
+              <div class="setting-ctrl">
+                <div class="range-wrap">
+                  <input type="range" id="in-scale" min="0.6" max="1.6" step="0.05" />
+                  <span class="range-val" id="val-scale">1.00×</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Walking Speed</div>
+                <div class="setting-sub">How fast he walks across your screen</div>
+              </div>
+              <div class="setting-ctrl">
+                <div class="range-wrap">
+                  <input type="range" id="in-speed" min="20" max="180" step="5" />
+                  <span class="range-val" id="val-speed">65 px/s</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">Choose 3D Character</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Saved Characters</div>
+                <div class="setting-sub" id="clip-count">Loading 3D models...</div>
+              </div>
+              <div class="setting-ctrl">
+                <button class="btn-primary" id="btn-pick-glb" style="padding:5px 11px;font-size:11.5px;">+ Add .glb (Mixamo / Custom)</button>
+              </div>
+            </div>
+            <div class="roster-list" id="roster-list"></div>
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Random Character Each Reminder</div>
+                <div class="setting-sub">Switch between your saved characters automatically</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-random-char" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <details class="adv-drawer">
+            <summary>More Options (Animation Clips &amp; Mixamo Setup)</summary>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border-subtle);font-size:11.5px;line-height:1.5;color:var(--text-secondary);">
+              <strong style="color:var(--text-primary);">Mixamo / Blender Smooth Walk Setup:</strong>
+              1) Upload a separated-leg humanoid model to <strong>mixamo.com</strong> (pants/shoes work cleanest).
+              2) Download <strong>Walking</strong> (tick <em>In Place</em>), <strong>Idle</strong>, <strong>Waving</strong>, &amp; <strong>Cheering</strong> as FBX.
+              3) Combine the clips via Blender NLA tracks (named <code>Walk</code>, <code>Idle</code>, <code>Remind</code>, <code>Celebrate</code>) &rarr; Export <strong>.glb</strong>, then click <strong>+ Add .glb</strong> above.
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta"><div class="setting-title">Walk Animation</div></div>
+              <div class="setting-ctrl"><select id="sel-walk"></select></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta"><div class="setting-title">Idle Animation</div></div>
+              <div class="setting-ctrl"><select id="sel-idle"></select></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta"><div class="setting-title">Reminder Animation</div></div>
+              <div class="setting-ctrl"><select id="sel-remind"></select></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta"><div class="setting-title">Drink Animation</div></div>
+              <div class="setting-ctrl"><select id="sel-celebrate"></select></div>
+            </div>
+          </details>
+        </section>
+
+        <!-- TAB 3: BREAK TIMERS -->
+        <section class="panel" id="tab-wellness">
+          <div class="section-label">Work Shift &amp; Scheduled Breaks</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Only Ask for Breaks During Working Hours</div>
+                <div class="setting-sub" id="shift-break-status">Eye Rest, Stretch &amp; Stand breaks pause outside your shift unless you click ▶ Work</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-breaks-work-only" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Also Quiet Water Outside Shift Hours</div>
+                <div class="setting-sub">Turn on to pause water alerts too outside your working window</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-shift-enabled" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Shift Start &amp; End Time</div>
+                <div class="setting-sub">Your normal daily working window</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="time" id="in-shift-start" value="09:00" style="padding:4px 6px;font-size:12px;" />
+                <span style="color:var(--text-muted);font-size:12px;">to</span>
+                <input type="time" id="in-shift-end" value="18:00" style="padding:4px 6px;font-size:12px;" />
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Add Scheduled Break Window</div>
+                <div class="setting-sub">Auto-notifies &amp; switches to Break mode during Lunch / Tea windows</div>
+              </div>
+              <div class="setting-ctrl" style="flex-wrap:wrap;justify-content:flex-end;">
+                <input type="text" id="in-brk-title" placeholder="e.g. Lunch" style="width:100px;" />
+                <input type="time" id="in-brk-start" value="13:00" style="padding:4px 5px;font-size:11.5px;" />
+                <span style="color:var(--text-muted);font-size:11px;">–</span>
+                <input type="time" id="in-brk-end" value="13:45" style="padding:4px 5px;font-size:11.5px;" />
+                <button class="btn-primary" id="btn-add-brk" style="padding:5px 9px;font-size:11.5px;">+ Add</button>
+              </div>
+            </div>
+            <div class="roster-list" id="scheduled-breaks-list" style="padding:6px 12px 10px;"></div>
+          </div>
+
+          <div class="section-label">Smart Break Detection</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Only Count Break Timers While Working</div>
+                <div class="setting-sub">Pauses break timers when your mouse stops moving (Water reminders still ask on time)</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-smart-idle" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Natural Eye Rest When Idle (Seconds)</div>
+                <div class="setting-sub">Seconds without mouse/keyboard input before resetting Eye Rest (glancing away counts as rest)</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="number" id="in-eye-idle-reset" min="10" max="120" />
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Pause Stretch &amp; Stand After Idle (Seconds)</div>
+                <div class="setting-sub">Seconds of no mouse movement before Stretch &amp; Stand timers pause</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="number" id="in-idle-pause" min="15" max="600" />
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Reset All Breaks After Away (Minutes)</div>
+                <div class="setting-sub">Minutes away from PC to count as a full physical break</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="number" id="in-idle-reset" min="1" max="60" />
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Quiet Gap Between Visits (Minutes)</div>
+                <div class="setting-sub">Minimum rest minutes after Brio leaves before another break pops up (bundles overlapping ones)</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="number" id="in-visit-gap" min="0" max="30" />
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Deep-Focus Subtle Edge Peek</div>
+                <div class="setting-sub">Peeks quietly at the edge for 4s when you're in deep focus — backs off 5m if you keep typing</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-focus-peek" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">Smart Context &amp; Hotkeys</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Hot Weather Hydration Tip</div>
+                <div class="setting-sub" id="wx-status-sub">Adds extra hydration reminders on hot days (&ge;31&deg;C)</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-weather-boost" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Smart Meeting &amp; App Awareness</div>
+                <div class="setting-sub">Waits during Zoom/Teams/Meet calls &amp; adds coding/video jokes</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-app-aware" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Keyboard Shortcuts</div>
+                <div class="setting-sub">Ctrl+Shift+Space Command Bar &bull; Ctrl+Shift+D Drink &bull; Ctrl+Shift+N Sticky</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-hotkeys" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Laptop Battery Alerts</div>
+                <div class="setting-sub">Warn at &le;20% low battery and 100% full charge (skipped on desktop PCs)</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-battery-alerts" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">End-of-Day Work Wrap-Up</div>
+                <div class="setting-sub">Daily evening summary of your glasses, breaks &amp; streak</div>
+              </div>
+              <div class="setting-ctrl">
+                <button class="btn-sm" id="btn-eod-preview">Preview</button>
+                <input type="time" id="in-eod-time" value="19:00" style="padding:4px 6px;font-size:12px;" />
+                <label class="switch">
+                  <input type="checkbox" id="in-eod-enabled" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Night-Owl Sleep Guard</div>
+                <div class="setting-sub">Mohanlal yawns &amp; reminds you every 30m when active past bedtime</div>
+              </div>
+              <div class="setting-ctrl">
+                <button class="btn-sm" id="btn-bedtime-preview">Preview</button>
+                <input type="time" id="in-bedtime" value="23:30" style="padding:4px 6px;font-size:12px;" />
+                <label class="switch">
+                  <input type="checkbox" id="in-bedtime-enabled" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">Desktop Sticky Notes Board (Ctrl+Shift+N)</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Floating Sticky Board</div>
+                <div class="setting-sub" id="sticky-status-sub">Pin tasks with optional countdown alerts (e.g. "water in stove") on your desktop</div>
+              </div>
+              <div class="setting-ctrl">
+                <button class="btn-primary" id="btn-show-sticky" style="padding:5px 11px;font-size:11.5px;">📌 Open Sticky Board</button>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Keep Sticky Board Always on Top</div>
+                <div class="setting-sub">Stay above open windows (also toggleable from the board's pin icon)</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-sticky-pin" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">Daily Habit &amp; Medicine Reminders</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Add Daily Reminder</div>
+                <div class="setting-sub">Brio pops up once a day at your chosen time</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="text" id="in-habit-title" placeholder="e.g. Take Vitamins" style="width:130px;" />
+                <input type="time" id="in-habit-time" value="14:00" style="padding:5px 6px;font-size:12px;" />
+                <button class="btn-primary" id="btn-add-habit" style="padding:6px 10px;font-size:11.5px;">+ Add</button>
+              </div>
+            </div>
+            <div class="roster-list" id="habit-list" style="padding:6px 12px 10px;"></div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 7px 2px;">
+            <div class="section-label" style="margin:0;">Ergonomic Break Categories (Medical Defaults)</div>
+            <button type="button" class="btn-sm" id="btn-reset-breaks">↺ Reset to Default</button>
+          </div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">1. Eye Rest (20-20-20 Rule)</div>
+                <div class="setting-sub">Look 20ft away during continuous screen work (min interval / sec timer)</div>
+              </div>
+              <div class="setting-ctrl" style="gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+                <span style="font-size:11px;color:var(--text-muted);">Every</span>
+                <input type="number" id="in-eye-min" min="5" max="120" style="width:52px;" />
+                <span style="font-size:11px;color:var(--text-muted);">m · Look</span>
+                <input type="number" id="in-eye-sec" min="10" max="120" style="width:52px;" />
+                <span style="font-size:11px;color:var(--text-muted);">s</span>
+                <button class="btn-sm" id="btn-quick-eye">Test</button>
+                <label class="switch">
+                  <input type="checkbox" id="in-eye-break" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">2. Posture &amp; Desk Stretch</div>
+                <div class="setting-sub">Shoulder &amp; back release every 45m by default (resets Eye Rest too)</div>
+              </div>
+              <div class="setting-ctrl" style="gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+                <span style="font-size:11px;color:var(--text-muted);">Every</span>
+                <input type="number" id="in-stretch-min" min="10" max="240" style="width:52px;" />
+                <span style="font-size:11px;color:var(--text-muted);">m · Hold</span>
+                <input type="number" id="in-stretch-sec" min="15" max="180" style="width:52px;" />
+                <span style="font-size:11px;color:var(--text-muted);">s</span>
+                <button class="btn-sm" id="btn-quick-stretch">Test</button>
+                <label class="switch">
+                  <input type="checkbox" id="in-stretch" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">3. Stand &amp; Walk Reset</div>
+                <div class="setting-sub">Full stand-up movement break every 90m by default (resets Stretch &amp; Eye)</div>
+              </div>
+              <div class="setting-ctrl" style="gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+                <span style="font-size:11px;color:var(--text-muted);">Every</span>
+                <input type="number" id="in-stand-min" min="15" max="360" style="width:52px;" />
+                <span style="font-size:11px;color:var(--text-muted);">m · Walk</span>
+                <input type="number" id="in-stand-sec" min="30" max="600" style="width:56px;" />
+                <span style="font-size:11px;color:var(--text-muted);">s</span>
+                <button class="btn-sm" id="btn-quick-stand">Test</button>
+                <label class="switch">
+                  <input type="checkbox" id="in-stand-break" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">1-Minute Box Breathing Guide</div>
+                <div class="setting-sub">Calm 4s Inhale / Hold / Exhale ring animation</div>
+              </div>
+              <div class="setting-ctrl">
+                <button class="btn-primary" id="btn-start-breathing" style="padding:5px 11px;font-size:11.5px;">🌊 Start Breathing</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">Pomodoro Focus Timer</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Turn On Pomodoro Timer</div>
+                <div class="setting-sub">Work in focused blocks with short breaks</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-pomo-enabled" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Work / Break Time (Minutes)</div>
+                <div class="setting-sub">Work minutes (left) and break minutes (right)</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="number" id="in-pomo-work" min="5" max="120" />
+                <span style="color:#64748B;font-size:12px;">/</span>
+                <input type="number" id="in-pomo-break" min="1" max="60" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: HISTORY & UPDATES -->
+        <section class="panel" id="tab-activity">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 7px 2px;">
+            <div class="section-label" id="hist-summary" style="margin:0;">Last 7 Days</div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-sm" id="btn-weekly-report">📋 Show Weekly Card</button>
+              <button class="btn-sm btn-danger" id="btn-reset-stats">↺ Reset Data</button>
+            </div>
+          </div>
+          <div class="card-group" style="padding:12px;">
+            <canvas id="history-canvas" width="460" height="185"></canvas>
+          </div>
+
+          <div class="section-label" id="work-hist-summary">Work &amp; Break Time (Last 7 Days)</div>
+          <div class="card-group" style="padding:10px 12px;">
+            <div id="work-days-grid" style="display:grid;grid-template-columns:repeat(7, minmax(0, 1fr));gap:6px;"></div>
+          </div>
+
+          <div class="section-label">Long Work Session Reminder</div>
+          <div class="card-group">
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Remind Me on Long Non-Stop Work</div>
+                <div class="setting-sub" id="sys-live-stats">Active work time: 0m</div>
+              </div>
+              <div class="setting-ctrl">
+                <label class="switch">
+                  <input type="checkbox" id="in-sys-mon" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Max Non-Stop Work Time (Minutes)</div>
+                <div class="setting-sub">Suggest a quick break after working non-stop for this long</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="number" id="in-active-limit" min="15" max="360" />
+              </div>
+            </div>
+          </div>
+
+          <details class="adv-drawer">
+            <summary>More Options (App Updates &amp; Advanced)</summary>
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">High CPU Load Alert (%)</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="number" id="in-cpu-thresh" min="50" max="99" />
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">App Version</div>
+                <div class="setting-sub" id="ota-status-label">v1.0.0 — Up to date</div>
+              </div>
+              <div class="setting-ctrl">
+                <button class="btn-sm" id="btn-check-update">Check for Updates</button>
+                <button class="btn-primary" id="btn-install-update" style="display:none;padding:5px 10px;font-size:11.5px;">Install Update</button>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Update URL</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="text" id="in-ota-url" placeholder="https://example.com/version.json" style="width:210px;" />
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-meta">
+                <div class="setting-title">Device Key <span class="badge" id="lic-tier-badge">Standard</span></div>
+                <div class="setting-sub" id="lic-hwid-label">ID: BRIO-XXXX-XXXX-XXXX</div>
+              </div>
+              <div class="setting-ctrl">
+                <input type="text" id="in-license-key" placeholder="PRO-XXXX-XXXX-XXXX" style="width:145px;" />
+                <button class="btn-sm" id="btn-activate-pro">Activate</button>
+              </div>
+            </div>
+          </details>
+        </section>
+      </div>
+    </main>
+    </div>
+  </div>
+
+  <script>
+    let currentPayload = null;
+    let selectedGlbPath = "";
+    let selectedTheme = "midnight_glass";
+    let currentRoster = [];
+    let currentHabits = [];
+    let currentScheduledBreaks = [];
+    let initialized = false;
+    let autoSaveTimer = null;
+    let savePillTimer = null;
+    let otaChecking = false;
+    let lastClipsKey = "";
+
+    function applyThemePreview(themeKey) {
+      selectedTheme = themeKey || "midnight_glass";
+      document.documentElement.dataset.theme = selectedTheme;
+      document.querySelectorAll(".theme-card").forEach((card) => {
+        card.classList.toggle("active", card.dataset.themePick === selectedTheme);
+      });
+      if (currentPayload) {
+        drawHistory(currentPayload);
+      }
+    }
+
+    document.querySelectorAll(".theme-card").forEach((card) => {
+      card.onclick = async () => {
+        const nextTheme = card.dataset.themePick || "midnight_glass";
+        applyThemePreview(nextTheme);
+        await saveAllSettingsNow();
+      };
+    });
+
+    document.querySelectorAll(".nav-btn").forEach((btn) => {
+      btn.onclick = () => {
+        document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
+        document.getElementById("pane-title").textContent = btn.dataset.title;
+        document.getElementById("pane-desc").textContent = btn.dataset.desc;
+        if (btn.dataset.tab === "activity" && currentPayload) {
+          drawHistory(currentPayload);
+        }
+      };
+    });
+
+    function flashSavedBadge() {
+      const pill = document.getElementById("save-pill");
+      if (!pill) return;
+      pill.classList.add("show");
+      if (savePillTimer) clearTimeout(savePillTimer);
+      savePillTimer = setTimeout(() => pill.classList.remove("show"), 1600);
+    }
+
+    function syncSegButtons(ml) {
+      const val = Number(ml) || 250;
+      document.querySelectorAll(".seg-btn").forEach((b) => {
+        b.classList.toggle("active", Number(b.dataset.ml) === val);
+      });
+    }
+
+    function calcRecommendedHydrationMlClient(age, heightCm, weightKg) {
+      const a = Math.max(5, Math.min(110, Math.round(Number(age) || 26)));
+      const h = Math.max(90, Math.min(240, Math.round(Number(heightCm) || 170)));
+      const w = Math.max(20, Math.min(250, Math.round(Number(weightKg) || 70)));
+      const mlPerKg = a < 18 ? 40 : a <= 30 ? 35 : a <= 54 ? 33 : 30;
+      const heightAdj = Math.max(-200, Math.min(300, (h - 170) * 4));
+      const rawMl = w * mlPerKg + heightAdj;
+      const roundedMl = Math.round(rawMl / 50) * 50;
+      return Math.max(1500, Math.min(5000, roundedMl));
+    }
+
+    function updateHydrationPreview() {
+      const autoEl = document.getElementById("in-auto-goal");
+      const ageEl = document.getElementById("in-age");
+      const heightEl = document.getElementById("in-height");
+      const weightEl = document.getElementById("in-weight");
+      const glassEl = document.getElementById("in-glass");
+      const goalEl = document.getElementById("in-goal");
+      const previewEl = document.getElementById("calc-goal-preview");
+      const subEl = document.getElementById("goal-glasses-sub");
+      if (!autoEl || !ageEl || !heightEl || !weightEl || !glassEl || !goalEl) return;
+
+      const isAuto = Boolean(autoEl.checked);
+      const glassMl = Math.max(50, Math.min(2000, Math.round(Number(glassEl.value) || 250)));
+      const calcMl = calcRecommendedHydrationMlClient(ageEl.value, heightEl.value, weightEl.value);
+      const calcGlasses = Math.max(1, Math.min(50, Math.ceil(calcMl / glassMl)));
+
+      ageEl.disabled = !isAuto;
+      heightEl.disabled = !isAuto;
+      weightEl.disabled = !isAuto;
+      goalEl.disabled = isAuto;
+      goalEl.style.opacity = isAuto ? "0.65" : "1";
+
+      if (isAuto) {
+        goalEl.value = calcGlasses;
+        if (previewEl) {
+          previewEl.textContent = `Recommended Target: ${(calcMl / 1000).toFixed(2)} L/day (${calcMl.toLocaleString()} ml • ~${calcGlasses} drinks)`;
+        }
+        if (subEl) {
+          subEl.textContent = "Synced automatically from your Liter goal & glass size (uncheck Auto to edit manually)";
+        }
+      } else {
+        const manualGlasses = Math.max(1, Math.min(30, Math.round(Number(goalEl.value) || 8)));
+        const manualMl = manualGlasses * glassMl;
+        if (previewEl) {
+          previewEl.textContent = `Manual Target: ${(manualMl / 1000).toFixed(2)} L/day (Recommended for profile: ${(calcMl / 1000).toFixed(2)} L)`;
+        }
+        if (subEl) {
+          subEl.textContent = "Total glasses of water you want to drink each day";
+        }
+      }
+    }
+
+    document.querySelectorAll(".seg-btn").forEach((btn) => {
+      btn.onclick = () => {
+        const ml = Number(btn.dataset.ml) || 250;
+        document.getElementById("in-glass").value = ml;
+        syncSegButtons(ml);
+        updateHydrationPreview();
+        saveAllSettingsNow();
+      };
+    });
+
+    function renderHabits() {
+      const list = document.getElementById("habit-list");
+      if (!list) return;
+      list.innerHTML = "";
+      if (!currentHabits.length) {
+        const empty = document.createElement("div");
+        empty.style.cssText = "font-size:11.5px;color:#64748B;padding:4px 2px;";
+        empty.textContent = "No daily habits added yet.";
+        list.appendChild(empty);
+        return;
+      }
+      currentHabits.forEach((h) => {
+        const row = document.createElement("div");
+        row.className = "roster-item" + (h.enabled ? " active" : "");
+        const info = document.createElement("div");
+        info.className = "roster-info";
+        const nm = document.createElement("div");
+        nm.className = "roster-name";
+        nm.textContent = `⏰ ${h.timeHHMM} — ${h.title}`;
+        info.appendChild(nm);
+
+        const acts = document.createElement("div");
+        acts.className = "roster-actions";
+        const testBtn = document.createElement("button");
+        testBtn.className = "btn-sm";
+        testBtn.textContent = "Test";
+        testBtn.onclick = () => window.waterBuddy.triggerHabit(h.title);
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn-sm btn-danger";
+        delBtn.textContent = "×";
+        delBtn.onclick = async () => {
+          currentHabits = currentHabits.filter((x) => x.id !== h.id);
+          renderHabits();
+          await saveAllSettingsNow();
+        };
+        acts.appendChild(testBtn);
+        acts.appendChild(delBtn);
+        row.appendChild(info);
+        row.appendChild(acts);
+        list.appendChild(row);
+      });
+    }
+
+    document.getElementById("btn-add-habit").onclick = async () => {
+      const titleEl = document.getElementById("in-habit-title");
+      const timeEl = document.getElementById("in-habit-time");
+      const title = (titleEl.value || "").trim();
+      if (!title) return;
+      currentHabits.push({
+        id: "hab_" + Date.now().toString(36),
+        title: title.slice(0, 48),
+        timeHHMM: timeEl.value || "12:00",
+        enabled: true,
+      });
+      titleEl.value = "";
+      renderHabits();
+      await saveAllSettingsNow();
+    };
+
+    function renderScheduledBreaks() {
+      const list = document.getElementById("scheduled-breaks-list");
+      if (!list) return;
+      list.innerHTML = "";
+      if (!currentScheduledBreaks.length) {
+        const empty = document.createElement("div");
+        empty.style.cssText = "font-size:11.5px;color:var(--text-muted);padding:4px 2px;";
+        empty.textContent = "No scheduled breaks added yet.";
+        list.appendChild(empty);
+        return;
+      }
+      currentScheduledBreaks.forEach((b) => {
+        const row = document.createElement("div");
+        row.className = "roster-item" + (b.enabled ? " active" : "");
+        const info = document.createElement("div");
+        info.className = "roster-info";
+        const nm = document.createElement("div");
+        nm.className = "roster-name";
+        nm.textContent = `☕ ${b.title} (${b.startHHMM} – ${b.endHHMM})`;
+        info.appendChild(nm);
+
+        const acts = document.createElement("div");
+        acts.className = "roster-actions";
+        const togBtn = document.createElement("button");
+        togBtn.className = "btn-sm";
+        togBtn.textContent = b.enabled ? "On" : "Off";
+        togBtn.onclick = async () => {
+          b.enabled = !b.enabled;
+          renderScheduledBreaks();
+          await saveAllSettingsNow();
+        };
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn-sm btn-danger";
+        delBtn.textContent = "×";
+        delBtn.onclick = async () => {
+          currentScheduledBreaks = currentScheduledBreaks.filter((x) => x.id !== b.id);
+          renderScheduledBreaks();
+          await saveAllSettingsNow();
+        };
+        acts.appendChild(togBtn);
+        acts.appendChild(delBtn);
+        row.appendChild(info);
+        row.appendChild(acts);
+        list.appendChild(row);
+      });
+    }
+
+    document.getElementById("btn-add-brk").onclick = async () => {
+      const titleEl = document.getElementById("in-brk-title");
+      const startEl = document.getElementById("in-brk-start");
+      const endEl = document.getElementById("in-brk-end");
+      const title = (titleEl.value || "").trim();
+      if (!title) return;
+      currentScheduledBreaks.push({
+        id: "brk_" + Date.now().toString(36),
+        title: title.slice(0, 40),
+        startHHMM: startEl.value || "13:00",
+        endHHMM: endEl.value || "13:45",
+        enabled: true,
+      });
+      titleEl.value = "";
+      renderScheduledBreaks();
+      await saveAllSettingsNow();
+    };
+
+    document.getElementById("btn-show-sticky").onclick = async () => {
+      await window.waterBuddy.showStickyNote();
+    };
+
+    function collectConfigFromForm() {
+      return {
+        user_name: document.getElementById("in-user-name").value.trim(),
+        user_gender: document.getElementById("in-user-gender").value,
+        ui_theme: selectedTheme,
+        birthday_mmdd: document.getElementById("in-birthday").value.trim(),
+        sticky_always_on_top: document.getElementById("in-sticky-pin").checked,
+        custom_habits: currentHabits,
+        work_schedule_enabled: document.getElementById("in-shift-enabled").checked,
+        work_shift_start: document.getElementById("in-shift-start").value || "09:00",
+        work_shift_end: document.getElementById("in-shift-end").value || "18:00",
+        scheduled_breaks: currentScheduledBreaks,
+        battery_alerts_enabled: document.getElementById("in-battery-alerts").checked,
+        eod_recap_enabled: document.getElementById("in-eod-enabled").checked,
+        eod_recap_time: document.getElementById("in-eod-time").value || "19:00",
+        bedtime_enabled: document.getElementById("in-bedtime-enabled").checked,
+        bedtime_hhmm: document.getElementById("in-bedtime").value || "23:30",
+        welcome_on_start: document.getElementById("in-welcome-start").checked,
+        language: document.getElementById("in-language").value,
+        interval_minutes: Number(document.getElementById("in-interval").value),
+        snooze_minutes: Number(document.getElementById("in-snooze").value),
+        glass_ml: Number(document.getElementById("in-glass").value),
+        auto_hydration_goal: document.getElementById("in-auto-goal").checked,
+        user_age: Number(document.getElementById("in-age").value),
+        user_height_cm: Number(document.getElementById("in-height").value),
+        user_weight_kg: Number(document.getElementById("in-weight").value),
+        daily_goal_glasses: Number(document.getElementById("in-goal").value),
+        breaks_work_hours_only: document.getElementById("in-breaks-work-only").checked,
+        eye_break_enabled: document.getElementById("in-eye-break").checked,
+        eye_break_interval_minutes: Number(document.getElementById("in-eye-min").value),
+        eye_break_duration_seconds: Number(document.getElementById("in-eye-sec").value),
+        stretch_enabled: document.getElementById("in-stretch").checked,
+        stretch_interval_minutes: Number(document.getElementById("in-stretch-min").value),
+        stretch_duration_seconds: Number(document.getElementById("in-stretch-sec").value),
+        stand_break_enabled: document.getElementById("in-stand-break").checked,
+        stand_break_interval_minutes: Number(document.getElementById("in-stand-min").value),
+        stand_break_duration_seconds: Number(document.getElementById("in-stand-sec").value),
+        min_visit_gap_minutes: Number(document.getElementById("in-visit-gap").value),
+        deep_focus_peek_enabled: document.getElementById("in-focus-peek").checked,
+        pomodoro_enabled: document.getElementById("in-pomo-enabled").checked,
+        pomodoro_work_minutes: Number(document.getElementById("in-pomo-work").value),
+        pomodoro_break_minutes: Number(document.getElementById("in-pomo-break").value),
+        system_monitor_enabled: document.getElementById("in-sys-mon").checked,
+        continuous_active_limit_minutes: Number(document.getElementById("in-stand-min").value),
+        cpu_alert_threshold: Number(document.getElementById("in-cpu-thresh").value),
+        smart_idle_enabled: document.getElementById("in-smart-idle").checked,
+        eye_idle_reset_seconds: Number(document.getElementById("in-eye-idle-reset").value),
+        idle_pause_seconds: Number(document.getElementById("in-idle-pause").value),
+        idle_reset_minutes: Number(document.getElementById("in-idle-reset").value),
+        ota_update_url: document.getElementById("in-ota-url").value.trim(),
+        license_key: document.getElementById("in-license-key").value.trim(),
+        dnd_fullscreen: document.getElementById("in-dnd-fs").checked,
+        always_sunglasses: document.getElementById("in-always-shades").checked,
+        weather_boost_enabled: document.getElementById("in-weather-boost").checked,
+        app_awareness_enabled: document.getElementById("in-app-aware").checked,
+        hotkeys_enabled: document.getElementById("in-hotkeys").checked,
+        walk_enabled: document.getElementById("in-walk").checked,
+        start_on_boot: document.getElementById("in-boot").checked,
+        popup_only_mode: document.getElementById("in-popup-only").checked,
+        ghost_mode_enabled: document.getElementById("in-ghost-mode").checked,
+        random_character: document.getElementById("in-random-char").checked,
+        walk_speed: Number(document.getElementById("in-speed").value),
+        character_scale: Number(document.getElementById("in-scale").value),
+        glb_path: selectedGlbPath,
+        roster: currentRoster,
+        walk_clip: document.getElementById("sel-walk").value,
+        idle_clip: document.getElementById("sel-idle").value,
+        remind_clip: document.getElementById("sel-remind").value,
+        celebrate_clip: document.getElementById("sel-celebrate").value,
+      };
+    }
+
+    async function saveAllSettingsNow() {
+      if (!initialized) return;
+      if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = null;
+      }
+      await window.waterBuddy.saveConfig(collectConfigFromForm());
+      flashSavedBadge();
+    }
+
+    function scheduleAutoSave() {
+      if (!initialized) return;
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        saveAllSettingsNow();
+      }, 220);
+    }
+
+    function populateSelect(el, clips, selected) {
+      el.innerHTML = "";
+      const autoOpt = document.createElement("option");
+      autoOpt.value = "auto";
+      autoOpt.textContent = "Auto-detect";
+      el.appendChild(autoOpt);
+      for (const name of clips) {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name || "(unnamed clip)";
+        el.appendChild(opt);
+      }
+      el.value = selected && [...el.options].some((o) => o.value === selected) ? selected : "auto";
+    }
+
+    function drawHistory(p) {
+      const canvas = document.getElementById("history-canvas");
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : null;
+      const cssW = Math.max(320, Math.round((rect && rect.width) || canvas.clientWidth || 460));
+      const cssH = Math.max(150, Math.round((rect && rect.height) || canvas.clientHeight || 185));
+      const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 1), 2);
+      const targetW = Math.round(cssW * dpr);
+      const targetH = Math.round(cssH * dpr);
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+      }
+      const ctx = canvas.getContext("2d");
+      if (typeof ctx.setTransform === "function") {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      const w = cssW;
+      const h = cssH;
+      ctx.clearRect(0, 0, w, h);
+
+      const days = p.state.recent_days || [];
+      const fallbackGlassMl = Math.max(50, Number(p.config.glass_ml) || 250);
+      const goalMl = Math.max(
+        250,
+        p.state.goalMl ||
+          p.config.daily_goal_ml ||
+          Math.max(1, p.config.daily_goal_glasses || 8) * fallbackGlassMl
+      );
+      const totalMl = days.reduce(
+        (s, d) => s + (d.ml !== undefined ? Number(d.ml) : d.count * fallbackGlassMl),
+        0
+      );
+      const totalGlasses = days.reduce((s, d) => s + d.count, 0);
+      document.getElementById("hist-summary").textContent =
+        `Last 7 Days: ${(totalMl / 1000).toFixed(2)} L (${totalGlasses} drinks • ${totalMl.toLocaleString()} ml)`;
+
+      const dayMls = days.map((d) => (d.ml !== undefined ? Number(d.ml) : d.count * fallbackGlassMl));
+      const maxVal = Math.max(goalMl, ...dayMls);
+      const padL = 24, padR = 24, padT = 26, padB = 32;
+      const plotH = h - padT - padB;
+      const colW = (w - padL - padR) / Math.max(1, days.length);
+      const css = getComputedStyle(document.documentElement);
+      const cAccent = (css.getPropertyValue("--accent-solid") || "#0EA5E9").trim();
+      const cSuccess = (css.getPropertyValue("--success-solid") || "#10B981").trim();
+      const cPrimary = (css.getPropertyValue("--text-primary") || "#F8FAFC").trim();
+      const cMuted = (css.getPropertyValue("--text-muted") || "#94A3B8").trim();
+      const cEmpty = (css.getPropertyValue("--chart-empty") || "#1E293B").trim();
+
+      const goalY = h - padB - (goalMl / maxVal) * plotH;
+      ctx.save();
+      ctx.strokeStyle = cSuccess;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(padL, goalY);
+      ctx.lineTo(w - padR, goalY);
+      ctx.stroke();
+      ctx.fillStyle = cSuccess;
+      ctx.font = "bold 11px Segoe UI";
+      ctx.textAlign = "right";
+      ctx.fillText(`Goal: ${(goalMl / 1000).toFixed(2)}L`, w - padR, goalY - 6);
+      ctx.restore();
+
+      days.forEach((d, i) => {
+        const dMl = dayMls[i] || 0;
+        const cx = padL + i * colW + colW * 0.5;
+        const bw = colW * 0.48;
+        const bh = maxVal > 0 ? (dMl / maxVal) * plotH : 0;
+        const y1 = h - padB;
+        const y0 = y1 - bh;
+
+        ctx.fillStyle = dMl >= goalMl ? cSuccess : dMl > 0 ? cAccent : cEmpty;
+        ctx.beginPath();
+        ctx.roundRect(cx - bw / 2, dMl > 0 ? y0 : y1 - 3, bw, dMl > 0 ? bh : 3, 4);
+        ctx.fill();
+
+        ctx.fillStyle = dMl > 0 ? cPrimary : cMuted;
+        ctx.font = "bold 11px Segoe UI";
+        ctx.textAlign = "center";
+        const barLabel = dMl > 0 ? `${(dMl / 1000).toFixed(1)}L` : "0";
+        ctx.fillText(barLabel, cx, (dMl > 0 ? y0 : y1 - 3) - 6);
+
+        ctx.fillStyle = i === days.length - 1 ? cPrimary : cMuted;
+        ctx.font = "11px Segoe UI";
+        ctx.fillText(d.label, cx, h - 10);
+      });
+
+      renderWorkHistorySummary(p);
+    }
+
+    function fmtMinsShort(mins) {
+      const m = Math.max(0, Math.round(Number(mins) || 0));
+      const h = Math.floor(m / 60);
+      const r = m % 60;
+      if (h > 0) return r > 0 ? `${h}h ${r}m` : `${h}h`;
+      return `${m}m`;
+    }
+
+    function renderWorkHistorySummary(p) {
+      const grid = document.getElementById("work-days-grid");
+      const titleEl = document.getElementById("work-hist-summary");
+      if (!grid || !p || !p.state) return;
+      const days = p.state.recent_days || [];
+      const totalWorkM = days.reduce((s, d) => s + (d.workMinutes || 0), 0);
+      const totalBrkM = days.reduce((s, d) => s + (d.breakMinutes || 0), 0);
+      if (titleEl) {
+        titleEl.textContent = `Work & Break Time (Last 7 Days: ${fmtMinsShort(totalWorkM)} work • ${fmtMinsShort(totalBrkM)} break)`;
+      }
+      grid.innerHTML = "";
+      days.forEach((d) => {
+        const cell = document.createElement("div");
+        cell.style.cssText =
+          "background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:8px;padding:7px 5px;text-align:center;";
+        const lbl = document.createElement("div");
+        lbl.style.cssText = "font-size:10.5px;font-weight:700;color:var(--text-secondary);margin-bottom:3px;";
+        lbl.textContent = d.label;
+        const w = document.createElement("div");
+        w.style.cssText = "font-size:11px;font-weight:700;color:var(--accent);";
+        w.textContent = `💼 ${fmtMinsShort(d.workMinutes || 0)}`;
+        const b = document.createElement("div");
+        b.style.cssText = "font-size:10px;color:var(--gold);margin-top:2px;";
+        b.textContent = `☕ ${fmtMinsShort(d.breakMinutes || 0)}`;
+        cell.appendChild(lbl);
+        cell.appendChild(w);
+        cell.appendChild(b);
+        grid.appendChild(cell);
+      });
+    }
+
+    async function selectCharacter(glbPath) {
+      selectedGlbPath = glbPath || "";
+      ["sel-walk", "sel-idle", "sel-remind", "sel-celebrate"].forEach((id) => {
+        const s = document.getElementById(id);
+        if (s) s.value = "auto";
+      });
+      renderRoster();
+      await window.waterBuddy.saveConfig({
+        glb_path: selectedGlbPath,
+        walk_clip: "auto",
+        idle_clip: "auto",
+        remind_clip: "auto",
+        celebrate_clip: "auto",
+      });
+      flashSavedBadge();
+    }
+
+    function renderRoster() {
+      const listEl = document.getElementById("roster-list");
+      if (!listEl) return;
+      listEl.innerHTML = "";
+      const activeNorm = String(selectedGlbPath || "").trim().toLowerCase();
+      const builtins = [
+        {
+          id: "builtin_mohanlal",
+          name: "Mohanlal 3D (Lalettan)",
+          sub: "Built-in Superstar companion",
+          glb_path: "mohanlal",
+          builtin: true,
+          isActive: activeNorm === "" || activeNorm === "mohanlal",
+        },
+        {
+          id: "builtin_droppy",
+          name: "Droppy 3D",
+          sub: "Built-in water drop buddy",
+          glb_path: "droppy",
+          builtin: true,
+          isActive: activeNorm === "droppy",
+        },
+      ];
+
+      const entries = [
+        ...builtins,
+        ...currentRoster.map((item) => ({
+          ...item,
+          sub: item.glb_path,
+          builtin: false,
+          isActive: activeNorm === String(item.glb_path || "").trim().toLowerCase(),
+        })),
+      ];
+
+      entries.forEach((entry) => {
+        const row = document.createElement("div");
+        row.className = "roster-item" + (entry.isActive ? " active" : "");
+
+        const info = document.createElement("div");
+        info.className = "roster-info";
+        const nameEl = document.createElement("div");
+        nameEl.className = "roster-name";
+        nameEl.textContent = entry.name;
+        if (entry.isActive) {
+          const badge = document.createElement("span");
+          badge.className = "badge";
+          badge.textContent = "ACTIVE";
+          nameEl.appendChild(badge);
+        }
+        const subEl = document.createElement("div");
+        subEl.className = "roster-sub";
+        subEl.textContent = entry.sub;
+        info.appendChild(nameEl);
+        info.appendChild(subEl);
+
+        const actions = document.createElement("div");
+        actions.className = "roster-actions";
+
+        if (!entry.isActive) {
+          const selBtn = document.createElement("button");
+          selBtn.className = "btn-sm";
+          selBtn.textContent = "Use";
+          selBtn.onclick = () => selectCharacter(entry.glb_path);
+          actions.appendChild(selBtn);
+        }
+
+        if (!entry.builtin) {
+          const delBtn = document.createElement("button");
+          delBtn.className = "btn-sm btn-danger";
+          delBtn.textContent = "×";
+          delBtn.onclick = async () => {
+            currentRoster = currentRoster.filter((r) => r.id !== entry.id);
+            if (entry.isActive) selectedGlbPath = "";
+            await window.waterBuddy.saveConfig({
+              roster: currentRoster,
+              glb_path: selectedGlbPath,
+            });
+            renderRoster();
+            flashSavedBadge();
+          };
+          actions.appendChild(delBtn);
+        }
+
+        row.appendChild(info);
+        row.appendChild(actions);
+        listEl.appendChild(row);
+      });
+    }
+
+    function applyState(p) {
+      if (!p) return;
+      currentPayload = p;
+      const logoEl = document.getElementById("brand-logo");
+      if (logoEl && p.appLogoUrl && logoEl.src !== p.appLogoUrl) {
+        logoEl.src = p.appLogoUrl;
+        logoEl.style.display = "inline-block";
+      }
+      const clips = (p.glb && p.glb.availableClips) || [];
+      document.getElementById("clip-count").textContent =
+        `${clips.length} animations ready`;
+
+      const g = p.state.glasses_today || 0;
+      const ml = p.state.mlToday !== undefined ? p.state.mlToday : g * (p.config.glass_ml || 250);
+      const goalMl = Math.max(
+        250,
+        p.state.goalMl ||
+          p.config.daily_goal_ml ||
+          Math.max(1, p.config.daily_goal_glasses || 8) * (p.config.glass_ml || 250)
+      );
+      const liters = (ml / 1000).toFixed(2);
+      const goalLiters = (goalMl / 1000).toFixed(2);
+      const pct = Math.min(100, Math.round((ml / goalMl) * 100));
+      document.getElementById("live-status").textContent =
+        `Today: ${liters} / ${goalLiters} L (${pct}% • ${g} drinks)`;
+      document.getElementById("side-bar-fill").style.width = `${pct}%`;
+
+      const sys = p.system || {};
+      document.getElementById("sys-live-stats").textContent =
+        `Active work time: ${sys.continuousActiveMinutes || 0} mins`;
+
+      const wx = p.weather;
+      const wxSub = document.getElementById("wx-status-sub");
+      if (wxSub) {
+        wxSub.textContent = wx
+          ? `${wx.city ? wx.city + " • " : ""}${wx.tempC}°C${wx.isHot ? " (Hot weather boost active!)" : ""}`
+          : "Adds extra hydration reminders on hot days (>=31°C)";
+      }
+
+      const lic = p.license || {};
+      document.getElementById("lic-hwid-label").textContent =
+        `ID: ${lic.hwid || "BRIO-0000-0000-0000"}`;
+      const licBadge = document.getElementById("lic-tier-badge");
+      licBadge.textContent = lic.tier || "Standard";
+
+      const ota = p.ota || {};
+      const verBadge = document.querySelector(".brand-ver");
+      if (verBadge && ota.currentVersion) {
+        verBadge.textContent = `v${String(ota.currentVersion).split(".").slice(0, 2).join(".")}`;
+      }
+      const otaLabel = document.getElementById("ota-status-label");
+      const installBtn = document.getElementById("btn-install-update");
+      if (otaChecking) {
+        otaLabel.textContent = "Checking...";
+        otaLabel.style.color = "#94A3B8";
+        installBtn.style.display = "none";
+      } else if (ota.error) {
+        otaLabel.textContent = `Check failed: ${ota.error}`;
+        otaLabel.style.color = "#F87171";
+        installBtn.style.display = "none";
+      } else if (ota.updateAvailable) {
+        otaLabel.textContent = `New version v${ota.latestVersion} available`;
+        otaLabel.style.color = "#34D399";
+        installBtn.style.display = ota.downloadUrl ? "inline-block" : "none";
+      } else if (ota.checked) {
+        otaLabel.textContent = `v${ota.currentVersion || "1.0.0"} — Up to date`;
+        otaLabel.style.color = "#94A3B8";
+        installBtn.style.display = "none";
+      } else {
+        otaLabel.textContent = `v${ota.currentVersion || "1.0.0"} — Ready`;
+        otaLabel.style.color = "#94A3B8";
+        installBtn.style.display = "none";
+      }
+
+      const pomo = p.pomodoro || {};
+      const pomoTxt = pomo.enabled
+        ? ` • 🍅 ${pomo.phase.toUpperCase()} ${Math.ceil((pomo.remainingSeconds || 0) / 60)}m`
+        : "";
+      const tMap = {
+        running: `Next water reminder in ${p.timer.formatted}${pomoTxt}`,
+        snoozed: `Snoozed — asking in ${p.timer.formatted}`,
+        paused: `Paused (${p.timer.formatted} left)`,
+        reminding: "Reminder active!",
+      };
+      const dndOn = Boolean(p.timer && p.timer.dndActive);
+      document.getElementById("live-timer").textContent = dndOn
+        ? `🌙 Muted (${p.timer.dndMinutesLeft}m left)`
+        : p.timer.fullscreenDeferred
+          ? "🎮 Paused for fullscreen"
+          : (tMap[p.timer.status] || "");
+      document.getElementById("btn-quick-pause").textContent =
+        p.timer.status === "paused" ? "Resume" : "Pause";
+      const dndBtn = document.getElementById("btn-quick-dnd");
+      dndBtn.textContent = dndOn ? "☀ Unmute" : "🌙 Mute 1h";
+      dndBtn.style.color = dndOn ? "#FBBF24" : "#E2E8F0";
+
+      const ws = p.workSchedule || {};
+      const sessMode = ws.sessionMode || "off";
+      const liveWorkEl = document.getElementById("live-work");
+      if (liveWorkEl) {
+        const tag =
+          sessMode === "working"
+            ? ws.activityPaused
+              ? "Paused (Idle)"
+              : "Working"
+            : sessMode === "break"
+              ? "On Break"
+              : "Off";
+        liveWorkEl.textContent = `💼 ${p.state.workTimeFormatted || "0m"} • ☕ ${p.state.breakTimeFormatted || "0m"} • ${tag}`;
+      }
+      const btnSw = document.getElementById("btn-side-work");
+      const btnSb = document.getElementById("btn-side-break");
+      const btnSo = document.getElementById("btn-side-off");
+      if (btnSw) btnSw.classList.toggle("primary", sessMode === "working");
+      if (btnSb) btnSb.classList.toggle("primary", sessMode === "break");
+      if (btnSo) btnSo.classList.toggle("primary", sessMode === "off");
+
+      const activeStickyCount = Array.isArray(p.config.sticky_notes)
+        ? p.config.sticky_notes.filter((n) => !n.done).length
+        : 0;
+      const stickySub = document.getElementById("sticky-status-sub");
+      if (stickySub) {
+        stickySub.textContent = activeStickyCount > 0
+          ? `${activeStickyCount} active note${activeStickyCount === 1 ? "" : "s"} pinned on your desktop`
+          : 'Pin tasks with optional countdown alerts (e.g. "water in stove") on your desktop';
+      }
+
+      const wsStatus = p.workSchedule || {};
+      const shiftSubEl = document.getElementById("shift-break-status");
+      if (shiftSubEl) {
+        shiftSubEl.textContent = wsStatus.breakRemindersAllowed
+          ? "Active now — Eye Rest, Stretch & Stand timers are tracking active work"
+          : "Paused outside shift / on break — Eye Rest, Stretch & Stand will wait until you work";
+      }
+      if (!initialized) {
+        const c = p.config;
+        applyThemePreview(c.ui_theme || "midnight_glass");
+        document.getElementById("in-user-name").value = c.user_name || "";
+        document.getElementById("in-user-gender").value = c.user_gender || "male";
+        document.getElementById("in-birthday").value = c.birthday_mmdd || "";
+        document.getElementById("in-sticky-pin").checked = c.sticky_always_on_top !== false;
+        document.getElementById("in-battery-alerts").checked = c.battery_alerts_enabled !== false;
+        document.getElementById("in-eod-enabled").checked = c.eod_recap_enabled !== false;
+        document.getElementById("in-eod-time").value = c.eod_recap_time || "19:00";
+        document.getElementById("in-bedtime-enabled").checked = c.bedtime_enabled !== false;
+        document.getElementById("in-bedtime").value = c.bedtime_hhmm || "23:30";
+        currentHabits = Array.isArray(c.custom_habits) ? c.custom_habits.map((h) => ({ ...h })) : [];
+        renderHabits();
+        document.getElementById("in-shift-enabled").checked = Boolean(c.work_schedule_enabled);
+        document.getElementById("in-shift-start").value = c.work_shift_start || "09:00";
+        document.getElementById("in-shift-end").value = c.work_shift_end || "18:00";
+        currentScheduledBreaks = Array.isArray(c.scheduled_breaks)
+          ? c.scheduled_breaks.map((b) => ({ ...b }))
+          : [];
+        renderScheduledBreaks();
+        document.getElementById("in-welcome-start").checked = c.welcome_on_start !== false;
+        document.getElementById("in-language").value = c.language || "malayalam";
+        document.getElementById("in-interval").value = c.interval_minutes;
+        document.getElementById("in-snooze").value = c.snooze_minutes;
+        document.getElementById("in-glass").value = c.glass_ml;
+        syncSegButtons(c.glass_ml);
+        document.getElementById("in-auto-goal").checked = c.auto_hydration_goal !== false;
+        document.getElementById("in-age").value = c.user_age || 26;
+        document.getElementById("in-height").value = c.user_height_cm || 170;
+        document.getElementById("in-weight").value = c.user_weight_kg || 70;
+        document.getElementById("in-goal").value = c.daily_goal_glasses;
+        updateHydrationPreview();
+        document.getElementById("in-breaks-work-only").checked = c.breaks_work_hours_only !== false;
+        document.getElementById("in-eye-break").checked = Boolean(c.eye_break_enabled);
+        document.getElementById("in-eye-min").value = c.eye_break_interval_minutes || 20;
+        document.getElementById("in-eye-sec").value = c.eye_break_duration_seconds || 20;
+        document.getElementById("in-stretch").checked = Boolean(c.stretch_enabled);
+        document.getElementById("in-stretch-min").value = c.stretch_interval_minutes || 45;
+        document.getElementById("in-stretch-sec").value = c.stretch_duration_seconds || 30;
+        document.getElementById("in-stand-break").checked = c.stand_break_enabled !== false;
+        document.getElementById("in-stand-min").value = c.stand_break_interval_minutes || c.continuous_active_limit_minutes || 90;
+        document.getElementById("in-stand-sec").value = c.stand_break_duration_seconds || 120;
+        document.getElementById("in-visit-gap").value = c.min_visit_gap_minutes !== undefined ? c.min_visit_gap_minutes : 5;
+        document.getElementById("in-focus-peek").checked = c.deep_focus_peek_enabled !== false;
+        document.getElementById("in-pomo-enabled").checked = Boolean(c.pomodoro_enabled);
+        document.getElementById("in-pomo-work").value = c.pomodoro_work_minutes || 25;
+        document.getElementById("in-pomo-break").value = c.pomodoro_break_minutes || 5;
+        document.getElementById("in-sys-mon").checked = Boolean(c.system_monitor_enabled);
+        document.getElementById("in-active-limit").value = c.stand_break_interval_minutes || c.continuous_active_limit_minutes || 90;
+        document.getElementById("in-cpu-thresh").value = c.cpu_alert_threshold || 85;
+        document.getElementById("in-smart-idle").checked = c.smart_idle_enabled !== undefined ? Boolean(c.smart_idle_enabled) : true;
+        document.getElementById("in-eye-idle-reset").value = c.eye_idle_reset_seconds || 25;
+        document.getElementById("in-idle-pause").value = c.idle_pause_seconds || 60;
+        document.getElementById("in-idle-reset").value = c.idle_reset_minutes || 3;
+        document.getElementById("in-ota-url").value = c.ota_update_url || "";
+        document.getElementById("in-license-key").value = c.license_key || "";
+        document.getElementById("in-dnd-fs").checked = Boolean(c.dnd_fullscreen);
+        document.getElementById("in-always-shades").checked = Boolean(c.always_sunglasses);
+        document.getElementById("in-weather-boost").checked = c.weather_boost_enabled !== false;
+        document.getElementById("in-app-aware").checked = c.app_awareness_enabled !== false;
+        document.getElementById("in-hotkeys").checked = c.hotkeys_enabled !== false;
+        document.getElementById("in-walk").checked = c.walk_enabled;
+        document.getElementById("in-boot").checked = c.start_on_boot;
+        document.getElementById("in-popup-only").checked = c.popup_only_mode;
+        document.getElementById("in-ghost-mode").checked = Boolean(c.ghost_mode_enabled);
+        document.getElementById("in-random-char").checked = Boolean(c.random_character);
+        document.getElementById("in-speed").value = c.walk_speed;
+        document.getElementById("val-speed").textContent = `${c.walk_speed} px/s`;
+        document.getElementById("in-scale").value = c.character_scale;
+        document.getElementById("val-scale").textContent = `${Number(c.character_scale).toFixed(2)}×`;
+        selectedGlbPath = c.glb_path || "";
+        currentRoster = Array.isArray(c.roster) ? c.roster.map((x) => ({ ...x })) : [];
+        renderRoster();
+
+        populateSelect(document.getElementById("sel-walk"), clips, c.walk_clip);
+        populateSelect(document.getElementById("sel-idle"), clips, c.idle_clip);
+        populateSelect(document.getElementById("sel-remind"), clips, c.remind_clip);
+        populateSelect(document.getElementById("sel-celebrate"), clips, c.celebrate_clip);
+        lastClipsKey = clips.join("|");
+        drawHistory(p);
+        initialized = true;
+      } else {
+        const c = p.config || {};
+        if (c.ui_theme && c.ui_theme !== selectedTheme) {
+          applyThemePreview(c.ui_theme);
+        }
+        const glassEl = document.getElementById("in-glass");
+        if (glassEl && document.activeElement !== glassEl) {
+          glassEl.value = c.glass_ml;
+        }
+        syncSegButtons(c.glass_ml);
+        const goalEl = document.getElementById("in-goal");
+        if (goalEl && document.activeElement !== goalEl) {
+          goalEl.value = c.daily_goal_glasses;
+        }
+        updateHydrationPreview();
+        const licEl = document.getElementById("in-license-key");
+        if (licEl && document.activeElement !== licEl) {
+          licEl.value = c.license_key || "";
+        }
+        document.getElementById("in-pomo-enabled").checked = Boolean(c.pomodoro_enabled);
+        document.getElementById("in-sticky-pin").checked = c.sticky_always_on_top !== false;
+        selectedGlbPath = c.glb_path || "";
+        currentRoster = Array.isArray(c.roster)
+          ? c.roster.map((x) => ({ ...x }))
+          : currentRoster;
+        renderRoster();
+        const clipsKey = clips.join("|");
+        if (clipsKey !== lastClipsKey) {
+          lastClipsKey = clipsKey;
+          populateSelect(document.getElementById("sel-walk"), clips, c.walk_clip);
+          populateSelect(document.getElementById("sel-idle"), clips, c.idle_clip);
+          populateSelect(document.getElementById("sel-remind"), clips, c.remind_clip);
+          populateSelect(document.getElementById("sel-celebrate"), clips, c.celebrate_clip);
+        }
+        if (document.getElementById("tab-activity").classList.contains("active")) {
+          drawHistory(p);
+        }
+      }
+    }
+
+    document.querySelectorAll('input[type="checkbox"], input[type="time"], select').forEach((el) => {
+      if (["in-habit-time", "in-brk-start", "in-brk-end"].includes(el.id)) return;
+      el.addEventListener("change", () => {
+        if (el.id === "in-auto-goal") updateHydrationPreview();
+        saveAllSettingsNow();
+      });
+    });
+    document.querySelectorAll('input[type="number"], input[type="text"], input[type="password"]').forEach((el) => {
+      if (["in-habit-title", "in-brk-title"].includes(el.id)) return;
+      el.addEventListener("input", () => {
+        if (el.id === "in-glass") syncSegButtons(el.value);
+        if (el.id === "in-stand-min") {
+          const limEl = document.getElementById("in-active-limit");
+          if (limEl) limEl.value = el.value;
+        }
+        if (el.id === "in-active-limit") {
+          const standEl = document.getElementById("in-stand-min");
+          if (standEl) standEl.value = el.value;
+        }
+        if (["in-age", "in-height", "in-weight", "in-glass", "in-goal"].includes(el.id)) {
+          updateHydrationPreview();
+        }
+        scheduleAutoSave();
+      });
+    });
+
+    document.getElementById("in-speed").oninput = (e) => {
+      document.getElementById("val-speed").textContent = `${e.target.value} px/s`;
+      scheduleAutoSave();
+    };
+    document.getElementById("in-scale").oninput = (e) => {
+      document.getElementById("val-scale").textContent = `${Number(e.target.value).toFixed(2)}×`;
+      scheduleAutoSave();
+    };
+    document.getElementById("btn-quick-drink").onclick = () => window.waterBuddy.drink();
+    document.getElementById("btn-side-work").onclick = () => window.waterBuddy.setWorkSession("working");
+    document.getElementById("btn-side-break").onclick = () => window.waterBuddy.setWorkSession("break");
+    document.getElementById("btn-side-off").onclick = () => window.waterBuddy.setWorkSession("off");
+    document.getElementById("btn-quick-eye").onclick = () => window.waterBuddy.testReminder("eye");
+    document.getElementById("btn-quick-stretch").onclick = () => window.waterBuddy.testReminder("stretch");
+    document.getElementById("btn-quick-stand").onclick = () => window.waterBuddy.testReminder("stand");
+    document.getElementById("btn-reset-breaks").onclick = async () => {
+      const def = (currentPayload && currentPayload.breakDefaults) || {
+        breaks_work_hours_only: true,
+        eye_break_enabled: true,
+        eye_break_interval_minutes: 20,
+        eye_break_duration_seconds: 20,
+        stretch_enabled: true,
+        stretch_interval_minutes: 45,
+        stretch_duration_seconds: 30,
+        stand_break_enabled: true,
+        stand_break_interval_minutes: 90,
+        stand_break_duration_seconds: 120,
+        smart_idle_enabled: true,
+        eye_idle_reset_seconds: 25,
+        idle_pause_seconds: 60,
+        idle_reset_minutes: 3,
+        min_visit_gap_minutes: 5,
+        deep_focus_peek_enabled: true,
+      };
+      document.getElementById("in-breaks-work-only").checked = Boolean(def.breaks_work_hours_only);
+      document.getElementById("in-eye-break").checked = Boolean(def.eye_break_enabled);
+      document.getElementById("in-eye-min").value = def.eye_break_interval_minutes;
+      document.getElementById("in-eye-sec").value = def.eye_break_duration_seconds;
+      document.getElementById("in-stretch").checked = Boolean(def.stretch_enabled);
+      document.getElementById("in-stretch-min").value = def.stretch_interval_minutes;
+      document.getElementById("in-stretch-sec").value = def.stretch_duration_seconds;
+      document.getElementById("in-stand-break").checked = Boolean(def.stand_break_enabled);
+      document.getElementById("in-stand-min").value = def.stand_break_interval_minutes;
+      document.getElementById("in-stand-sec").value = def.stand_break_duration_seconds;
+      document.getElementById("in-active-limit").value = def.stand_break_interval_minutes;
+      document.getElementById("in-smart-idle").checked = Boolean(def.smart_idle_enabled);
+      document.getElementById("in-eye-idle-reset").value = def.eye_idle_reset_seconds;
+      document.getElementById("in-idle-pause").value = def.idle_pause_seconds;
+      document.getElementById("in-idle-reset").value = def.idle_reset_minutes;
+      document.getElementById("in-visit-gap").value = def.min_visit_gap_minutes;
+      document.getElementById("in-focus-peek").checked = def.deep_focus_peek_enabled !== false;
+      await saveAllSettingsNow();
+    };
+    document.getElementById("btn-start-breathing").onclick = () => window.waterBuddy.startBreathing();
+    document.getElementById("btn-eod-preview").onclick = () => window.waterBuddy.triggerEodRecap();
+    document.getElementById("btn-bedtime-preview").onclick = () => window.waterBuddy.previewBedtime();
+    document.getElementById("btn-weekly-report").onclick = () => window.waterBuddy.triggerWeeklyReport();
+    document.getElementById("btn-reset-stats").onclick = async () => {
+      await window.waterBuddy.resetStats();
+      if (currentPayload) drawHistory(currentPayload);
+      flashSavedBadge();
+    };
+    document.getElementById("btn-quick-pause").onclick = () => window.waterBuddy.togglePause();
+    document.getElementById("btn-quick-dnd").onclick = () => {
+      const on = Boolean(currentPayload && currentPayload.timer && currentPayload.timer.dndActive);
+      window.waterBuddy.toggleDnd(on ? 0 : 60);
+    };
+    document.getElementById("btn-quick-test").onclick = () => window.waterBuddy.testReminder("water");
+
+    document.getElementById("btn-check-update").onclick = async () => {
+      otaChecking = true;
+      await window.waterBuddy.saveConfig({
+        ota_update_url: document.getElementById("in-ota-url").value.trim(),
+      });
+      document.getElementById("ota-status-label").textContent = "Checking...";
+      document.getElementById("ota-status-label").style.color = "#94A3B8";
+      try {
+        await window.waterBuddy.checkUpdate();
+      } finally {
+        otaChecking = false;
+        if (currentPayload) applyState(currentPayload);
+      }
+    };
+    document.getElementById("btn-install-update").onclick = async () => {
+      const otaLabel = document.getElementById("ota-status-label");
+      otaLabel.textContent = "Downloading update...";
+      otaLabel.style.color = "#38BDF8";
+      const res = await window.waterBuddy.installUpdate();
+      if (res && res.error) {
+        otaLabel.textContent = `Install failed: ${res.error}`;
+        otaLabel.style.color = "#F87171";
+      }
+    };
+    document.getElementById("btn-activate-pro").onclick = async () => {
+      const typed = document.getElementById("in-license-key").value.trim();
+      if (typed) {
+        await window.waterBuddy.saveConfig({ license_key: typed });
+      } else {
+        await window.waterBuddy.activateProDemo();
+      }
+      flashSavedBadge();
+    };
+
+    document.getElementById("btn-pick-glb").onclick = async () => {
+      const picked = await window.waterBuddy.pickGlbFile();
+      if (picked) {
+        const stem = picked.split(/[/\\]/).pop().replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ") || "Custom 3D";
+        const exists = currentRoster.some((r) => r.glb_path.toLowerCase() === picked.toLowerCase());
+        if (!exists) {
+          currentRoster.push({
+            id: "char_" + Date.now().toString(36),
+            name: stem,
+            glb_path: picked,
+          });
+        }
+        selectedGlbPath = picked;
+        ["sel-walk", "sel-idle", "sel-remind", "sel-celebrate"].forEach((id) => {
+          const s = document.getElementById(id);
+          if (s) s.value = "auto";
+        });
+        renderRoster();
+        await window.waterBuddy.saveConfig({
+          glb_path: selectedGlbPath,
+          roster: currentRoster,
+          walk_clip: "auto",
+          idle_clip: "auto",
+          remind_clip: "auto",
+          celebrate_clip: "auto",
+        });
+        flashSavedBadge();
+      }
+    };
+
+    document.getElementById("btn-cancel").onclick = async () => {
+      if (autoSaveTimer) {
+        await saveAllSettingsNow();
+      }
+      window.waterBuddy.closeSettings();
+    };
+    document.getElementById("btn-save").onclick = async () => {
+      await saveAllSettingsNow();
+      window.waterBuddy.closeSettings();
+    };
+
+    window.waterBuddy.onStateUpdate(applyState);
+    window.waterBuddy.getState().then(applyState);
+
+    const histCanvas = document.getElementById("history-canvas");
+    if (histCanvas && typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(() => {
+        if (currentPayload && document.getElementById("tab-activity").classList.contains("active")) {
+          drawHistory(currentPayload);
+        }
+      }).observe(histCanvas);
+    }
+  </script>
+</body>
+</html>

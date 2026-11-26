@@ -1,0 +1,59 @@
+{
+  "name": "brio",
+  "version": "1.0.0",
+  "description": "Brio — 3D Walking Desktop Companion for Hydration, Breaks & Focus",
+  "author": "Brio",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "node electron/launch.js",
+    "settings": "node electron/launch.js --settings",
+    "test": "node tests/test_electron_helpers.js",
+    "build:win": "electron-builder --win"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.brio.companion",
+    "productName": "Brio",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "!electron/launch.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/app_icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "shortcutName": "Brio"
+    }
+  }
+}

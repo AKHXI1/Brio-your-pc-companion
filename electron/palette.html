@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Brio — Quick Command</title>
+  <link rel="stylesheet" href="./theme.css" />
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    html, body {
+      margin: 0;
+      padding: 8px;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      font-family: "Segoe UI Variable Text", "Segoe UI", "Segoe UI Emoji", "Segoe UI Symbol", system-ui, sans-serif;
+      overflow: hidden;
+    }
+    .pal-shell {
+      width: 100%;
+      background: var(--bg-main);
+      background-image: var(--bg-ambient);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 15px;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      color: var(--text-primary);
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-sidebar);
+    }
+    .spark {
+      font-size: 16px;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+    #cmd-input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 600;
+      outline: none;
+    }
+    #cmd-input::placeholder {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .kbd {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 2px 7px;
+      flex-shrink: 0;
+    }
+    .results {
+      max-height: 238px;
+      overflow-y: auto;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .res-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      padding: 8px 11px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--text-primary);
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .res-item:hover,
+    .res-item.active {
+      background: var(--accent-soft);
+      border-color: var(--border-glow);
+    }
+    .res-label {
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+    .res-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="pal-shell">
+    <div class="input-row">
+      <span class="spark">⚡</span>
+      <input type="text" id="cmd-input" placeholder='Type "water in stove 5m", "drink 500", "work", "break", or "450*18"...' autofocus />
+      <span class="kbd">ESC</span>
+    </div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <script>
+    const inputEl = document.getElementById("cmd-input");
+    const resultsEl = document.getElementById("results");
+    let visibleActions = [];
+    let activeIdx = 0;
+
+    function renderSuggestions(preview) {
+      resultsEl.innerHTML = "";
+      visibleActions = [];
+      if (!preview) return;
+
+      if (preview.kind === "suggestions" && Array.isArray(preview.items)) {
+        visibleActions = preview.items.map((it) => ({
+          cmd: it.key,
+          label: it.label,
+          hint: it.hint,
+        }));
+      } else {
+        visibleActions.push({
+          cmd: inputEl.value,
+          label: preview.label || inputEl.value,
+          hint: preview.hint || "",
+          isPrimary: true,
+        });
+        if (Array.isArray(preview.suggestions)) {
+          preview.suggestions.forEach((s) => {
+            visibleActions.push({
+              cmd: s.key,
+              label: s.label,
+              hint: s.hint,
+            });
+          });
+        }
+      }
+
+      if (activeIdx >= visibleActions.length) activeIdx = 0;
+      visibleActions.forEach((act, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "res-item" + (idx === activeIdx ? " active" : "");
+        const left = document.createElement("span");
+        left.className = "res-label";
+        left.textContent = act.label;
+        const right = document.createElement("span");
+        right.className = "res-hint";
+        right.textContent = act.hint;
+        btn.appendChild(left);
+        btn.appendChild(right);
+        btn.onclick = () => executeAction(act.cmd);
+        resultsEl.appendChild(btn);
+      });
+    }
+
+    let previewSeq = 0;
+    let lastPreviewQuery = "";
+    let userNavigated = false;
+
+    async function refreshPreview() {
+      const seq = ++previewSeq;
+      const query = inputEl.value;
+      const preview = await window.waterBuddy.previewPaletteCommand(query);
+      if (seq !== previewSeq) return;
+      lastPreviewQuery = query;
+      renderSuggestions(preview);
+    }
+
+    async function executeAction(rawCmd) {
+      await window.waterBuddy.runPaletteCommand(rawCmd);
+    }
+
+    inputEl.addEventListener("input", () => {
+      activeIdx = 0;
+      userNavigated = false;
+      refreshPreview();
+    });
+
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        window.waterBuddy.closePalette();
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (visibleActions.length) {
+          activeIdx = (activeIdx + 1) % visibleActions.length;
+          userNavigated = true;
+          renderSuggestionsFromDomSelection();
+        }
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (visibleActions.length) {
+          activeIdx = (activeIdx - 1 + visibleActions.length) % visibleActions.length;
+          userNavigated = true;
+          renderSuggestionsFromDomSelection();
+        }
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const rawText = inputEl.value.trim();
+        if (lastPreviewQuery !== inputEl.value && rawText) {
+          executeAction(inputEl.value);
+          return;
+        }
+        const chosen = visibleActions[activeIdx];
+        executeAction(chosen && (userNavigated || !rawText || activeIdx === 0) ? chosen.cmd : inputEl.value);
+      }
+    });
+
+    function renderSuggestionsFromDomSelection() {
+      resultsEl.querySelectorAll(".res-item").forEach((el, i) => {
+        const isAct = i === activeIdx;
+        el.classList.toggle("active", isAct);
+        if (isAct && typeof el.scrollIntoView === "function") {
+          el.scrollIntoView({ block: "nearest" });
+        }
+      });
+    }
+
+    function applyState(p) {
+      if (!p || !p.config) return;
+      const nextTheme = p.config.ui_theme || "midnight_glass";
+      if (document.documentElement.dataset.theme !== nextTheme) {
+        document.documentElement.dataset.theme = nextTheme;
+      }
+    }
+
+    window.addEventListener("focus", () => {
+      inputEl.value = "";
+      activeIdx = 0;
+      inputEl.focus();
+      refreshPreview();
+    });
+
+    window.waterBuddy.onStateUpdate(applyState);
+    window.waterBuddy.getState().then((p) => {
+      applyState(p);
+      refreshPreview();
+    });
+  </script>
+</body>
+</html>

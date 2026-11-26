@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Brio — Sticky Notes</title>
+  <link rel="stylesheet" href="./theme.css" />
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    html, body {
+      margin: 0;
+      padding: 6px;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      font-family: "Segoe UI Variable Text", "Segoe UI", "Segoe UI Emoji", "Segoe UI Symbol", system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    .sticky-card {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-main);
+      background-image: var(--bg-ambient);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 14px;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .sticky-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 11px;
+      background: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border-subtle);
+      -webkit-app-region: drag;
+      flex-shrink: 0;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+    .count-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: var(--gold-soft);
+      color: var(--gold);
+      border: 1px solid var(--gold-border);
+    }
+    .header-btns {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      -webkit-app-region: no-drag;
+    }
+    .icon-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .icon-btn:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+    .icon-btn.pinned {
+      background: var(--gold-soft);
+      color: var(--gold);
+      border-color: var(--gold-border);
+    }
+
+    .composer {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .composer-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .composer input[type="text"] {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+      border-radius: 7px;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+    }
+    .composer input[type="text"]:focus,
+    .composer input[type="number"]:focus {
+      border-color: var(--accent);
+    }
+    .btn-add {
+      background: var(--accent-solid);
+      color: var(--accent-contrast);
+      border: none;
+      border-radius: 7px;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      flex-shrink: 0;
+    }
+    .btn-add:hover { background: var(--accent-hover); }
+
+    .timer-picks {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .timer-label {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-right: 2px;
+    }
+    .t-chip {
+      background: var(--bg-input);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .t-chip.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--border-glow);
+      font-weight: 700;
+    }
+    .t-custom {
+      width: 46px;
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 2px 5px;
+      font-size: 10.5px;
+      text-align: center;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .notes-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .notes-body::-webkit-scrollbar { width: 6px; }
+    .notes-body::-webkit-scrollbar-thumb {
+      background: var(--scroll-thumb);
+      border-radius: 999px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 28px 12px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .note-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 8px 10px;
+      border-radius: 9px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      transition: border-color 0.15s ease, opacity 0.15s ease;
+    }
+    .note-item.ringing {
+      border-color: var(--gold);
+      background: var(--gold-soft);
+      animation: ringPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes ringPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.25); }
+      50% { box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.35); }
+    }
+    .note-item.done {
+      opacity: 0.56;
+    }
+    .note-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .note-check {
+      margin-top: 2px;
+      accent-color: var(--accent-solid);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .note-text {
+      flex: 1;
+      font-size: 12.5px;
+      font-weight: 600;
+      line-height: 1.38;
+      word-break: break-word;
+      color: var(--text-primary);
+    }
+    .note-item.done .note-text {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+    .note-del {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 3px;
+      border-radius: 4px;
+    }
+    .note-del:hover { color: var(--danger); }
+
+    .note-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-left: 20px;
+      gap: 6px;
+    }
+    .timer-badge {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .timer-badge.expired {
+      background: var(--gold-soft);
+      color: var(--gold);
+    }
+    .mini-btn {
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .mini-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .sticky-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 11px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      background: var(--bg-sidebar);
+      border-top: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="sticky-card">
+    <header class="sticky-header">
+      <div class="header-left">
+        <span>📌 Sticky Notes</span>
+        <span class="count-pill" id="active-count">0</span>
+      </div>
+      <div class="header-btns">
+        <button type="button" class="icon-btn" id="btn-pin" title="Keep floating on top of windows">📌 On Top</button>
+        <button type="button" class="icon-btn" id="btn-close" title="Hide Sticky Board (Ctrl+Shift+N)">×</button>
+      </div>
+    </header>
+
+    <div class="composer">
+      <div class="composer-row">
+        <input type="text" id="in-note" placeholder="e.g. water in stove..." maxlength="140" />
+        <button type="button" class="btn-add" id="btn-add">+ Pin</button>
+      </div>
+      <div class="timer-picks">
+        <span class="timer-label">Alert timer:</span>
+        <button type="button" class="t-chip active" data-mins="0">None</button>
+        <button type="button" class="t-chip" data-mins="5">5m</button>
+        <button type="button" class="t-chip" data-mins="10">10m</button>
+        <button type="button" class="t-chip" data-mins="15">15m</button>
+        <input type="number" class="t-custom" id="in-mins" min="0" max="240" placeholder="min" title="Custom alert minutes" />
+      </div>
+    </div>
+
+    <div class="notes-body" id="notes-list"></div>
+
+    <footer class="sticky-footer">
+      <span>Ctrl+Shift+N to toggle</span>
+      <button type="button" class="mini-btn" id="btn-clear-done">Clear Done</button>
+    </footer>
+  </div>
+
+  <script>
+    let notes = [];
+    let selectedMins = 0;
+    let alwaysOnTop = true;
+
+    function fmtCountdown(msLeft) {
+      const total = Math.max(0, Math.ceil(msLeft / 1000));
+      const m = Math.floor(total / 60);
+      const s = total % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function syncTimerChips() {
+      document.querySelectorAll(".t-chip").forEach((btn) => {
+        btn.classList.toggle("active", Number(btn.dataset.mins) === selectedMins);
+      });
+    }
+
+    document.querySelectorAll(".t-chip").forEach((btn) => {
+      btn.onclick = () => {
+        selectedMins = Number(btn.dataset.mins) || 0;
+        document.getElementById("in-mins").value = selectedMins > 0 ? String(selectedMins) : "";
+        syncTimerChips();
+      };
+    });
+
+    document.getElementById("in-mins").oninput = (e) => {
+      const val = Math.max(0, Math.min(240, Math.round(Number(e.target.value) || 0)));
+      selectedMins = val;
+      syncTimerChips();
+    };
+
+    let pendingSaves = 0;
+    let lastNotesJson = "";
+
+    async function persistNotes() {
+      pendingSaves += 1;
+      lastNotesJson = JSON.stringify(notes);
+      try {
+        await window.waterBuddy.saveStickyNotes(notes);
+      } finally {
+        pendingSaves = Math.max(0, pendingSaves - 1);
+      }
+    }
+
+    async function addNote() {
+      const input = document.getElementById("in-note");
+      const text = (input.value || "").trim();
+      if (!text) return;
+      const mins = Math.max(0, Math.min(240, Math.round(Number(document.getElementById("in-mins").value) || selectedMins || 0)));
+      const timerEndsAt = mins > 0 ? Date.now() + mins * 60000 : 0;
+      notes.unshift({
+        id: "note_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+        text: text.slice(0, 140),
+        done: false,
+        timerEndsAt,
+        alertFired: false,
+      });
+      input.value = "";
+      selectedMins = 0;
+      document.getElementById("in-mins").value = "";
+      syncTimerChips();
+      renderNotes();
+      await persistNotes();
+    }
+
+    function renderNotes() {
+      const list = document.getElementById("notes-list");
+      const activeCount = notes.filter((n) => !n.done).length;
+      document.getElementById("active-count").textContent = String(activeCount);
+      list.innerHTML = "";
+
+      if (!notes.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = "Pin quick tasks or timed alerts here (like \"water in stove\"). They stay on your desktop cleanly!";
+        list.appendChild(empty);
+        return;
+      }
+
+      const now = Date.now();
+      notes.forEach((note) => {
+        const isExpired = !note.done && note.timerEndsAt > 0 && now >= note.timerEndsAt;
+        const card = document.createElement("div");
+        card.className =
+          "note-item" +
+          (note.done ? " done" : "") +
+          (isExpired ? " ringing" : "");
+
+        const top = document.createElement("div");
+        top.className = "note-top";
+
+        const chk = document.createElement("input");
+        chk.type = "checkbox";
+        chk.className = "note-check";
+        chk.checked = Boolean(note.done);
+        chk.onchange = async () => {
+          note.done = chk.checked;
+          if (note.done) {
+            note.timerEndsAt = 0;
+            note.alertFired = false;
+          }
+          renderNotes();
+          await persistNotes();
+        };
+
+        const txt = document.createElement("div");
+        txt.className = "note-text";
+        txt.textContent = note.text;
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "note-del";
+        del.textContent = "×";
+        del.title = "Delete note";
+        del.onclick = async () => {
+          notes = notes.filter((x) => x.id !== note.id);
+          renderNotes();
+          await persistNotes();
+        };
+
+        top.appendChild(chk);
+        top.appendChild(txt);
+        top.appendChild(del);
+        card.appendChild(top);
+
+        if (!note.done) {
+          const meta = document.createElement("div");
+          meta.className = "note-meta";
+
+          const badgeWrap = document.createElement("div");
+          if (note.timerEndsAt > 0) {
+            const b = document.createElement("span");
+            b.className = "timer-badge" + (isExpired ? " expired" : "");
+            b.dataset.noteId = note.id;
+            b.textContent = isExpired ? "🔔 Time up!" : `⏱ ${fmtCountdown(note.timerEndsAt - now)}`;
+            badgeWrap.appendChild(b);
+          } else {
+            const b = document.createElement("span");
+            b.style.cssText = "font-size:10px;color:var(--text-muted);";
+            b.textContent = "Pinned";
+            badgeWrap.appendChild(b);
+          }
+
+          const add5 = document.createElement("button");
+          add5.type = "button";
+          add5.className = "mini-btn";
+          add5.textContent = note.timerEndsAt > now ? "+5m" : "⏱ 5m";
+          add5.onclick = async () => {
+            const base = note.timerEndsAt > Date.now() ? note.timerEndsAt : Date.now();
+            note.timerEndsAt = base + 5 * 60000;
+            note.alertFired = false;
+            renderNotes();
+            await persistNotes();
+          };
+
+          meta.appendChild(badgeWrap);
+          meta.appendChild(add5);
+          card.appendChild(meta);
+        }
+
+        list.appendChild(card);
+      });
+    }
+
+    function applyState(p) {
+      if (!p || !p.config) return;
+      const nextTheme = p.config.ui_theme || "midnight_glass";
+      if (document.documentElement.dataset.theme !== nextTheme) {
+        document.documentElement.dataset.theme = nextTheme;
+      }
+      alwaysOnTop = p.config.sticky_always_on_top !== false;
+      const pinBtn = document.getElementById("btn-pin");
+      pinBtn.classList.toggle("pinned", alwaysOnTop);
+      pinBtn.textContent = alwaysOnTop ? "📌 On Top" : "📌 Normal";
+      if (pendingSaves > 0) return;
+      const incoming = Array.isArray(p.config.sticky_notes) ? p.config.sticky_notes : [];
+      const incomingJson = JSON.stringify(incoming);
+      if (incomingJson === lastNotesJson) return;
+      lastNotesJson = incomingJson;
+      notes = incoming.map((n) => ({ ...n }));
+      renderNotes();
+    }
+
+    document.getElementById("btn-add").onclick = addNote;
+    document.getElementById("in-note").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addNote();
+    });
+    document.getElementById("btn-pin").onclick = async () => {
+      alwaysOnTop = !alwaysOnTop;
+      await window.waterBuddy.setStickyPin(alwaysOnTop);
+    };
+    document.getElementById("btn-close").onclick = () => window.waterBuddy.closeStickyBoard();
+    document.getElementById("btn-clear-done").onclick = async () => {
+      notes = notes.filter((n) => !n.done);
+      renderNotes();
+      await persistNotes();
+    };
+
+    // Live 1s countdown refresh
+    setInterval(() => {
+      const now = Date.now();
+      let needFullRerender = false;
+      for (const n of notes) {
+        if (n.done || !n.timerEndsAt) continue;
+        const badge = document.querySelector(`.timer-badge[data-note-id="${n.id}"]`);
+        if (now >= n.timerEndsAt) {
+          if (badge && !badge.classList.contains("expired")) {
+            needFullRerender = true;
+          }
+        } else if (badge) {
+          badge.textContent = `⏱ ${fmtCountdown(n.timerEndsAt - now)}`;
+        }
+      }
+      if (needFullRerender) renderNotes();
+    }, 1000);
+
+    window.waterBuddy.onStateUpdate(applyState);
+    window.waterBuddy.getState().then(applyState);
+  </script>
+</body>
+</html>
